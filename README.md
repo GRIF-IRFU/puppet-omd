@@ -7,6 +7,7 @@ This module is intended to configure, install and manage an OMD distribution.
 
 If required, this will use  the omd repository. 
 This is the the default behaviour, so if you're managing your repos, make sure to disable this.
+Last note concerning directories and packages : Othe omd packages do contain the OMD version in the package name : this makes it difficult to have a module that works out of the box and does not hardcode a specific version. We'll try to maintain this hardcoded version, but in case you need something else, please just use the omd_version class param in the omd class. Or give us a recipe to improve that ;)
 
 This module borrows files from check_mk for the agent setup : those file license is under manifests/check_mk/agent
 
