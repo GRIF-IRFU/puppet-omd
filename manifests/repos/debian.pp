@@ -1,0 +1,3 @@
+class omd::repos::debian {
+  
+}

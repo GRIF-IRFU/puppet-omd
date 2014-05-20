@@ -1,0 +1,26 @@
+service livestatus-<%= @site %>
+{
+        type            = UNLISTED
+        port            = <%= @port %>
+        socket_type     = stream
+        protocol        = tcp
+        wait            = no
+# limit to 100 connections per second. Disable 3 secs if above.
+        cps             = 100 3
+# set the number of maximum allowed parallel instances of unixcat.
+# Please make sure that this values is at least as high as
+# the number of threads defined with num_client_threads in
+# etc/mk-livestatus/nagios.cfg
+        instances       = 500
+# limit the maximum number of simultaneous connections from
+# one source IP address
+        per_source      = 250
+# Disable TCP delay, makes connection more responsive
+        flags           = NODELAY
+        user            = <%= @site %>
+        server          = /omd/sites/<%= @site %>/bin/unixcat
+        server_args     = /omd/sites/<%= @site %>/tmp/run/live
+# configure the IP address(es) of your Nagios server here:
+        only_from       = 127.0.0.1 <%= @only_from.join(' ') %>
+        disable         = no
+}
