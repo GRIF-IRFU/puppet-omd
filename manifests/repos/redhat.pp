@@ -5,7 +5,7 @@ class omd::repos::redhat {
     descr => "Consol* Labs Repository",
     enabled => 1,
     gpgcheck => 1,
-    gpgkey => 'gpgkey=http://labs.consol.de/repo/stable/RPM-GPG-KEY',
+    gpgkey => 'http://labs.consol.de/repo/stable/RPM-GPG-KEY',
   }
   
   #test releases
@@ -14,6 +14,6 @@ class omd::repos::redhat {
     descr => "Consol* Labs TESTING Repository",
     enabled => 1,
     gpgcheck => 1,
-    gpgkey => 'gpgkey=https://labs.consol.de/repo/testing/RPM-GPG-KEY',
+    gpgkey => 'https://labs.consol.de/repo/testing/RPM-GPG-KEY',
   }  
 }
