@@ -36,7 +36,7 @@ define omd::site(
   #refreshonly check_mk reload
   exec { "checkmk_refresh_${name}":
     path => ['/usr/bin','/usr/sbin','/bin','/sbin',],
-    command     => "sudo -i -u ${name} /opt/omd/sites/${name}/bin/cmk -O",
+    command     => "su -c '/opt/omd/sites/${name}/bin/cmk -O' -s /bin/sh ${name}",
     refreshonly => true,
     require => Exec["omd create site ${name}"],
     tag => 'check_mk_refresh_site', #used to be notified of a global check_mk config change, requiring a reload
