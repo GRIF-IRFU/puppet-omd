@@ -16,7 +16,7 @@ class omd(
   
   if($with_repo) {
     case $::osfamily {
-      #debian : { include omd::repos::debian } #todo
+      debian : { include omd::repos::debian }
       redhat : { include omd::repos::redhat }
       default : { fail("unsupported os family : $::osfamily")}
     }
