@@ -53,7 +53,7 @@ define omd::check_mk::addhost(
       }  
     } else {
       exec { "checkmk_inventory_${hname}_${site}":
-        command     => "sudo -i -u ${site} /opt/omd/sites/${site}/bin/cmk -I $hname",
+        command     => "su -l -c '/opt/omd/sites/${site}/bin/cmk -I $hname' -s /bin/sh ${site}",
         path => ['/usr/bin','/usr/sbin','/bin','/sbin',],
         notify      => Exec["checkmk_refresh_${site}"],
         refreshonly => true,
