@@ -1,0 +1,42 @@
+# the inventory function
+puppet_run_stats = (2100,3900)
+def inventory_puppet(info):
+    for x in info:
+        if len(x) > 0:
+            return [(None, "puppet_run_stats")]
+
+# the check function
+def check_puppet(item, params, info):
+    f = [ l for l in info ]
+    line = f[0]
+    changed_resources = int(line[0])
+    failed_resources = int(line[1])
+    run_time = float(line[2])
+    run_age = int(line[3])
+    warn, crit = params
+    perfdata = [
+          ( "changed_resources",   "%d" % changed_resources ),
+          ( "failed_resources",   "%d" % failed_resources ),
+          ( "run_age",   "%d" % run_age, warn, crit ),
+          ( "run_time",   "%.3f" % run_time ) ]
+    result = (0, "OK")
+    try:
+        # always return crit if there are any failed resources
+        if failed_resources >= 1:
+            result = (2, "CRIT (failed resources)")
+        # otherwise, return crit or warn if we exceed our freshness thresholds
+        elif run_age >= crit:
+            result = (2, "CRIT (puppet run staler than %d)" % (crit,))
+        elif wait_perc >= warn:
+            result = (1, "WARNING (puppet run staler than %d)" % (warn,))
+    except:
+        pass
+
+    return (result[0], result[1] + " - changed_resources: %d, failed_resources: %d, run_time: %f run_age: %d" %
+            (changed_resources, failed_resources, run_time, run_age), perfdata)
+
+
+# declare the check to Check_MK
+check_info['puppet.status'] = \
+      (check_puppet, "Puppet status", 1, inventory_puppet)
+
