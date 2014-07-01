@@ -129,6 +129,8 @@ create a nagios command, and use it
     omd::nagios::command {check_nrpe_long: site=>'irfu', command => '/usr/lib/nagios/plugins/check_nrpe -u -H $HOSTADDRESS$ -c $ARG1$ -t $ARG2$'}
     omd::check_mk::legacy::service {'dummy_cvmfs': site=> 'irfu', command =>'check_nrpe_long!check_hung_ncm!300', mk_tags=>['wn']}
 
+#### monitoring puppet (server side)
+    omd::check_mk::server::plugins::puppet { 'irfu': }
 
 #### puppetdb cleanup
 
@@ -162,6 +164,10 @@ Add a check_mk tag "nagios" on a host.
 Add an MRPE test that will be automatically inventoried ( and exporting a check_mk tag) :
     
     omd::check_mk::mrpe::check{'hung_nrpe': command=>'/usr/lib/nagios/plugins/check_procs -w :5 -C nrpe'}
+
+#### monitoring puppet (client side)
+
+    include omd::check_mk::plugins::puppet
 
 ## Todo
 - refactor/rework
