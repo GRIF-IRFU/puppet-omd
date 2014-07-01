@@ -130,7 +130,7 @@ create a nagios command, and use it
     omd::check_mk::legacy::service {'dummy_cvmfs': site=> 'irfu', command =>'check_nrpe_long!check_hung_ncm!300', mk_tags=>['wn']}
 
 #### monitoring puppet (server side)
-    omd::check_mk::server::plugins::puppet { 'infra': site=>'infra' }
+    omd::check_mk::server::plugins::puppet { 'irfu': }
 
 #### puppetdb cleanup
 
