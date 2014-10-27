@@ -30,8 +30,18 @@ unset LANG
 export MK_LIBDIR="/usr/lib/check_mk_agent"
 export MK_CONFDIR="/etc/check_mk"
 
+
+# Provide information about the remote host. That helps when data
+# is being sent only once to each remote host.
+if [ "$REMOTE_HOST" ] ; then
+	export REMOTE=$REMOTE_HOST
+elif [ "$SSH_CLIENT" ] ; then
+	export REMOTE=${SSH_CLIENT%% *}
+fi
+
+
 # Make sure, locally installed binaries are found
-PATH=<%= @agent_path %>
+PATH=$PATH:/usr/local/bin
 
 # All executables in PLUGINSDIR will simply be executed and their
 # ouput appended to the output of the agent. Plugins define their own
@@ -93,7 +103,7 @@ function run_cached () {
 }
 
 echo '<<<check_mk>>>'
-echo Version: 1.2.4
+echo Version: 1.2.4p5
 echo AgentOS: linux
 echo PluginsDirectory: $PLUGINSDIR
 echo LocalDirectory: $LOCALDIR
@@ -117,7 +127,7 @@ fi
 echo '<<<df>>>'
 # The exclusion list is getting a bit of a problem. -l should hide any remote FS but seems
 # to be all but working.
-excludefs="-x smbfs -x tmpfs -x cifs -x iso9660 -x udf -x nfsv4 -x nfs -x mvfs -x zfs <%= @agent_df_extra_excludes -%>"
+excludefs="-x smbfs -x tmpfs -x cifs -x iso9660 -x udf -x nfsv4 -x nfs -x mvfs -x zfs"
 df -PTlk $excludefs | sed 1d
 
 # Filesystem usage for ZFS
@@ -158,7 +168,7 @@ grep ^/dev < /proc/mounts
 
 # processes including username, without kernel processes
 echo '<<<ps>>>'
-ps ax -o user,vsz,rss,pcpu,command --columns <%= @agent_ps_columns -%>  | sed -e 1d -e 's/ *\([^ ]*\) *\([^ ]*\) *\([^ ]*\) *\([^ ]*\) */(\1,\2,\3,\4) /'
+ps ax -o user,vsz,rss,pcpu,command --columns 10000 | sed -e 1d -e 's/ *\([^ ]*\) *\([^ ]*\) *\([^ ]*\) *\([^ ]*\) */(\1,\2,\3,\4) /'
 
 
 # Memory usage
@@ -365,23 +375,32 @@ fi
 
 # Status of CUPS printer queues
 if type lpstat > /dev/null 2>&1; then
-   if pgrep cups > /dev/null 2>&1; then
-       echo '<<<cups_queues>>>'
-       WAITMAX="waitmax 3"
-       CPRINTCONF=/etc/cups/printers.conf
-       PRINTERS=$(lpstat -a | awk '{print $1}')
-       if [ -r "$CPRINTCONF" ] ; then
-          for PQ in $PRINTERS ; do
-             grep -q -x -E "<(Default)?Printer $PQ>" $CPRINTCONF && $WAITMAX lpstat -p $PQ
-          done
-          echo '---'
-          for PQ in $PRINTERS ; do
-             grep -q -x -E "<(Default)?Printer $PQ>" $CPRINTCONF && $WAITMAX lpstat -o $PQ
-          done
-       else
-          $WAITMAX lpstat -p ; echo '---' ; $WAITMAX lpstat -o | sort
-       fi
-   fi
+    if pgrep cups > /dev/null 2>&1; then
+        echo '<<<cups_queues>>>'
+        CPRINTCONF=/etc/cups/printers.conf
+        if [ -r "$CPRINTCONF" ] ; then
+            LOCAL_PRINTERS=$(grep -E "<(Default)?Printer .*>" $CPRINTCONF | awk '{print $2}' | sed -e 's/>//')
+            lpstat -p | while read LINE
+            do
+                PRINTER=$(echo $LINE | awk '{print $2}')
+                if echo "$LOCAL_PRINTERS" | grep -q "$PRINTER"; then
+                    echo $LINE
+                fi
+            done
+            echo '---'
+            lpstat -o | while read LINE
+            do
+                PRINTER=$(echo $LINE | awk '{print $2}')
+                if echo "$LOCAL_PRINTERS" | grep -q "$PRINTER"; then
+                    echo $LINE
+                fi
+            done
+        else
+            lpstat -p
+            echo '---'
+            lpstat -o | sort
+        fi
+    fi
 fi
 
 # Heartbeat monitoring
@@ -424,6 +443,7 @@ if type mailq >/dev/null 2>&1 && [ -x /usr/sbin/postfix ] && getent passwd postf
     echo '<<<postfix_mailq>>>'
     mailq | tail -n 6
 elif [ -x /usr/sbin/ssmtp ] ; then
+    echo '<<<postfix_mailq>>>'
     mailq 2>&1 | sed 's/^[^:]*: \(.*\)/\1/' | tail -n 6
 fi
 
@@ -472,10 +492,20 @@ then
     done
 fi
 
-# Get statistics about monitored jobs
-if cd /var/lib/check_mk_agent/job; then
+# Get statistics about monitored jobs. Below the job directory there
+# is a sub directory per user that ran a job. That directory must be
+# owned by the user so that a symlink or hardlink attack for reading
+# arbitrary files can be avoided.
+if pushd /var/lib/check_mk_agent/job >/dev/null; then
     echo '<<<job>>>'
-    head -n -0 -v *
+    for username in *
+    do
+        if [ -d "$username" ] && cd "$username" ; then
+            su "$username" -c "head -n -0 -v *"
+            cd ..
+        fi
+    done
+    popd > /dev/null
 fi
 
 # Gather thermal information provided e.g. by acpi

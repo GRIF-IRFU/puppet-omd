@@ -24,6 +24,9 @@ class omd::check_mk::agent (
   
 ) {
   
+  package { ['time']:
+    ensure => present,
+  }
   #setup directories:
   include omd::common::folders
   File <| title == '/etc/check_mk' |>

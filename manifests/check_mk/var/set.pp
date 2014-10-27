@@ -65,6 +65,7 @@ define omd::check_mk::var::set(
       content => "${var_str} $content\n",
       order => $concat_order,
       notify => Exec["checkmk_refresh_${site}"]
+        
   }
   ->
   Exec <| tag == "checkmk_inventory" |>

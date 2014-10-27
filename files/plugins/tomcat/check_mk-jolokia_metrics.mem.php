@@ -1,4 +1,4 @@
-#!/bin/bash
+<?php
 # +------------------------------------------------------------------+
 # |             ____ _               _        __  __ _  __           |
 # |            / ___| |__   ___  ___| | __   |  \/  | |/ /           |
@@ -23,45 +23,36 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-help() {
-    echo "Usage: mk-job IDENT PROGRAM [ARGS...]"
-    echo ""
-    echo "Execute PROGRAM as subprocess while measuring performance information"
-    echo "about the running process and writing it to an output file. This file"
-    echo "can be monitored using Check_MK. The Check_MK Agent will forward the"
-    echo "information of all job files to the monitoring server."
-    echo ""
-    echo "This file is being distributed with the Check_MK Agent."
+
+$opt[1] = "--vertical-label 'MB' -l 0  --title '$hostname / $servicedesc: Heap and Nonheap levels' ";
+$def[1] = ""
+         . "DEF:heap=$RRDFILE[1]:$DS[1]:MAX "
+         . "DEF:nonheap=$RRDFILE[2]:$DS[1]:MAX "
+         . "CDEF:min_nonheap=0,nonheap,- "
+         . "CDEF:total=heap,nonheap,+ "
+
+         . "AREA:heap#00c0ff:\"Heap\" ";
+if ($MAX[1]) {
+  $def[1] .= "LINE1:$MAX[1]#003077:\"Heap MAX\" ";
+}
+if ($CRIT[1]) {
+  $def[1] .= "LINE1:$WARN[1]#a0ad00:\"Heap WARN\" "
+           . "LINE1:$CRIT[1]#ad0000:\"Heap CRIT\" ";
 }
 
-if [ $# -lt 2 ]; then
-    help >&2
-    exit 1
-fi
 
-MYSELF=$(id -nu)
-OUTPUT_PATH=/var/lib/check_mk_agent/job/$MYSELF
-IDENT=$1
-shift
+$def[1] .= "AREA:min_nonheap#3430bf:\"Nonheap\" ";
+if ($MAX[2]) {
+  $def[1] .= "LINE1:-$MAX[2]#003233:\"Nonheap MAX \" ";
+}
+if ($CRIT[2]) {
+  $def[1] .= "LINE1:-$WARN[2]#adfd30:\"Nonheap WARN\" "
+           . "LINE1:-$CRIT[2]#ff0080:\"Nonheap CRIT\" ";
+}
 
-if [ ! -d "$OUTPUT_PATH" ]; then
-    if [ "$MYSELF" = root ] ; then
-        mkdir -p "$OUTPUT_PATH"
-    else
-        echo "ERROR: Missing output directory $OUTPUT_PATH for non-root user '$MYSELF'." >&2
-        exit 1
-    fi
-fi
 
-if ! type $1 >/dev/null 2>&1; then
-    echo -e "ERROR: Cannot run $1. Command not found.\n" >&2
-    help >&2
-    exit 1
-fi
+$def[1] .= "GPRINT:total:LAST:\"Total %.2lfMB last\" "
+         . "GPRINT:total:AVERAGE:\"%.2lfMB avg\" "
+         . "GPRINT:total:MAX:\"%.2lfMB max \" " . "";
 
-date +"start_time %s" > "$OUTPUT_PATH/.$IDENT.running"
-/usr/bin/time -o "$OUTPUT_PATH/.$IDENT.running" --append \
-              -f "exit_code %x\nreal_time %E\nuser_time %U\nsystem_time %S\nreads %I\nwrites %O\nmax_res_kbytes %M\navg_mem_kbytes %K\ninvol_context_switches %c\nvol_context_switches %w" $@
-RC=$?
-mv "$OUTPUT_PATH/.$IDENT.running" "$OUTPUT_PATH/$IDENT"
-exit $RC
+?>

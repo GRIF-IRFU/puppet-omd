@@ -1,4 +1,4 @@
-#!/bin/bash
+<?php
 # +------------------------------------------------------------------+
 # |             ____ _               _        __  __ _  __           |
 # |            / ___| |__   ___  ___| | __   |  \/  | |/ /           |
@@ -23,45 +23,25 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-help() {
-    echo "Usage: mk-job IDENT PROGRAM [ARGS...]"
-    echo ""
-    echo "Execute PROGRAM as subprocess while measuring performance information"
-    echo "about the running process and writing it to an output file. This file"
-    echo "can be monitored using Check_MK. The Check_MK Agent will forward the"
-    echo "information of all job files to the monitoring server."
-    echo ""
-    echo "This file is being distributed with the Check_MK Agent."
-}
 
-if [ $# -lt 2 ]; then
-    help >&2
-    exit 1
-fi
+# Cut the relevant bits from the Nagios Service Description.
+# This is a little complicated.
+$servicedesc = str_replace("_", " ", $servicedesc);
 
-MYSELF=$(id -nu)
-OUTPUT_PATH=/var/lib/check_mk_agent/job/$MYSELF
-IDENT=$1
-shift
 
-if [ ! -d "$OUTPUT_PATH" ]; then
-    if [ "$MYSELF" = root ] ; then
-        mkdir -p "$OUTPUT_PATH"
-    else
-        echo "ERROR: Missing output directory $OUTPUT_PATH for non-root user '$MYSELF'." >&2
-        exit 1
-    fi
-fi
+$opt[1]     = "--lower=0 --upper=".($CRIT[1]+10)." --vertical-label \"Bytes\" --title \"$servicedesc\" ";
+# Paint nice gradient using MySQLs colours.
+$def[1]     = rrd::def("var1", $RRDFILE[1], $DS[1], "MAX")
+           . rrd::gradient('var1', '015a84', 'e97b00', 'Database Size', 50)
+           . rrd::gprint("var1", array("LAST", "MAX", "AVERAGE"), "%6.2lf%sB")
+           # paint a little line on top of it for visibility.
+           . "LINE2:var1#e57900 ";
 
-if ! type $1 >/dev/null 2>&1; then
-    echo -e "ERROR: Cannot run $1. Command not found.\n" >&2
-    help >&2
-    exit 1
-fi
+# Draw vertical line with the current warn/crit levels.
+if (isset($WARN[1]) and $WARN[1] != "") {
+    $def[1] .= "HRULE:$WARN[1]#FFFF00:\"\" ".
+               "HRULE:$CRIT[1]#FF0000:\"\" ".
+               "";
+    }
 
-date +"start_time %s" > "$OUTPUT_PATH/.$IDENT.running"
-/usr/bin/time -o "$OUTPUT_PATH/.$IDENT.running" --append \
-              -f "exit_code %x\nreal_time %E\nuser_time %U\nsystem_time %S\nreads %I\nwrites %O\nmax_res_kbytes %M\navg_mem_kbytes %K\ninvol_context_switches %c\nvol_context_switches %w" $@
-RC=$?
-mv "$OUTPUT_PATH/.$IDENT.running" "$OUTPUT_PATH/$IDENT"
-exit $RC
+?>

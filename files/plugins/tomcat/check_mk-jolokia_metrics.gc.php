@@ -1,4 +1,4 @@
-#!/bin/bash
+<?php
 # +------------------------------------------------------------------+
 # |             ____ _               _        __  __ _  __           |
 # |            / ___| |__   ___  ___| | __   |  \/  | |/ /           |
@@ -23,45 +23,39 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-help() {
-    echo "Usage: mk-job IDENT PROGRAM [ARGS...]"
-    echo ""
-    echo "Execute PROGRAM as subprocess while measuring performance information"
-    echo "about the running process and writing it to an output file. This file"
-    echo "can be monitored using Check_MK. The Check_MK Agent will forward the"
-    echo "information of all job files to the monitoring server."
-    echo ""
-    echo "This file is being distributed with the Check_MK Agent."
+
+$opt[1] = "--vertical-label \"GC Count\"  --title \" $servicedesc for $hostname\" ";
+
+$def[1] =  "DEF:c=$RRDFILE[1]:$DS[1]:AVERAGE ";
+
+$def[1] .= rrd::comment("$NAME[1]\: \\n");
+$def[1] .= "AREA:c#3bfcdf:\"\" " ;
+$def[1] .= "LINE1:c#00b499:\"GC Count per Minute\" " ;
+$def[1] .= "GPRINT:c:LAST:\"%3.4lg LAST \" ";
+$def[1] .= "GPRINT:c:AVERAGE:\"%3.4lg AVERAGE \" ";
+$def[1] .= "GPRINT:c:MAX:\"%3.4lg MAX \\n\" ";
+
+if ($WARN[1] != "") {
+   $def[1] .= "HRULE:$WARN[1]#FFFF00:\"Warning  at $WARN[1]$UNIT[1] \\n\" ";
+}
+if ($CRIT[1] != "") {
+   $def[1] .= "HRULE:$CRIT[1]#FF0000:\"Critical at $CRIT[1]$UNIT[1]  \\n\" ";
 }
 
-if [ $# -lt 2 ]; then
-    help >&2
-    exit 1
-fi
+$opt[2] = "--vertical-label \"GC Time\"  --title \" $servicedesc for $hostname\" ";
 
-MYSELF=$(id -nu)
-OUTPUT_PATH=/var/lib/check_mk_agent/job/$MYSELF
-IDENT=$1
-shift
+$def[2] =  "DEF:t=$RRDFILE[2]:$DS[2]:AVERAGE ";
 
-if [ ! -d "$OUTPUT_PATH" ]; then
-    if [ "$MYSELF" = root ] ; then
-        mkdir -p "$OUTPUT_PATH"
-    else
-        echo "ERROR: Missing output directory $OUTPUT_PATH for non-root user '$MYSELF'." >&2
-        exit 1
-    fi
-fi
-
-if ! type $1 >/dev/null 2>&1; then
-    echo -e "ERROR: Cannot run $1. Command not found.\n" >&2
-    help >&2
-    exit 1
-fi
-
-date +"start_time %s" > "$OUTPUT_PATH/.$IDENT.running"
-/usr/bin/time -o "$OUTPUT_PATH/.$IDENT.running" --append \
-              -f "exit_code %x\nreal_time %E\nuser_time %U\nsystem_time %S\nreads %I\nwrites %O\nmax_res_kbytes %M\navg_mem_kbytes %K\ninvol_context_switches %c\nvol_context_switches %w" $@
-RC=$?
-mv "$OUTPUT_PATH/.$IDENT.running" "$OUTPUT_PATH/$IDENT"
-exit $RC
+$def[2] .= rrd::comment("$NAME[2]\: \\n");
+$def[2] .= "AREA:t#ffc7ac:\"\" " ;
+$def[2] .= "LINE1:t#ff6d25:\"GC Time (ms) per Minute\" " ;
+$def[2] .= "GPRINT:t:LAST:\"%3.0lf$UNIT[2] LAST \" ";
+$def[2] .= "GPRINT:t:AVERAGE:\"%3.2lf$UNIT[2] AVERAGE \" ";
+$def[2] .= "GPRINT:t:MAX:\"%3.2lf$UNIT[2] MAX \\n\" ";
+if ($WARN[2] != "") {
+   $def[2] .= "HRULE:$WARN[2]#FFFF00:\"Warning  at $WARN[2]$UNIT[2] \\n\" ";
+}
+if ($CRIT[2] != "") {
+   $def[2] .= "HRULE:$CRIT[2]#FF0000:\"Critical at $CRIT[2]$UNIT[2]  \\n\" ";
+}
+?>

@@ -95,4 +95,12 @@ define omd::site(
     notify  => Exec["checkmk_refresh_${name}"],
     require => Exec["omd create site ${name}"]
   }
+
+  file { "/omd/sites/${name}/local/share/check_mk/notifications/xmpp":
+	mode   => 755,
+	ensure => file,
+	source => "puppet:///modules/omd/notifications/xmpp",
+	owner  => "${name}",
+	group  => "${name}",
+  }
 }

@@ -9,7 +9,7 @@
  */
 class omd(
   $with_repo=true,
-  $omd_version='1.10', #or omd-1.11.20140328
+  $omd_version='1.30', #or omd-1.11.20140328
   $omd_release=latest,
 ) {
   
@@ -21,14 +21,9 @@ class omd(
       default : { fail("unsupported os family : $::osfamily")}
     }
   }
-
-  case $::osfamily {
-      debian : { $omd_service = "omd-$omd_version" }
-      redhat : { $omd_service  = "omd" }
-  }
   
   package {"omd": name => "omd-$omd_version", ensure => $omd_release}
   ->
-  service {'omd': name => "$md_service", enable=> true, ensure=>running}
+  service {'omd': name => "omd-$omd_version", enable=> true, ensure=>running}
   
 }

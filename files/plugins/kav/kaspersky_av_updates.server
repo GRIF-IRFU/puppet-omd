@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/usr/bin/python
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
 # +------------------------------------------------------------------+
 # |             ____ _               _        __  __ _  __           |
 # |            / ___| |__   ___  ___| | __   |  \/  | |/ /           |
@@ -23,45 +24,35 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-help() {
-    echo "Usage: mk-job IDENT PROGRAM [ARGS...]"
-    echo ""
-    echo "Execute PROGRAM as subprocess while measuring performance information"
-    echo "about the running process and writing it to an output file. This file"
-    echo "can be monitored using Check_MK. The Check_MK Agent will forward the"
-    echo "information of all job files to the monitoring server."
-    echo ""
-    echo "This file is being distributed with the Check_MK Agent."
+# Example output from agent:
+#Current AV databases date:     2014-05-27 03:54:00
+#Last AV databases update date: 2014-05-27 09:00:40
+#Current AV databases state:    UpToDate
+#Current AV databases records:  8015301
+#Update attempts:               48616
+#Successful updates:            9791
+#Update manual stops:           0
+#Updates failed:                3333
+
+def inventory_kaspersky_av_updates(info):
+    return [( None, None ) ]
+
+def check_kaspersky_av_updates(item, _no_params, info):
+    info =  dict([ ( x[0], ":".join(x[1:]).strip()) for x in info ])
+    state = 0
+    message = "Database State: " + info['Current AV databases state']
+    if info['Current AV databases state'] != 'UpToDate':
+        state = 2
+        message += "(!!)"
+    message += ", Database Date: %s, Last Update: %s" % ( info['Current AV databases date'],
+                                                          info['Last AV databases update date'] )
+
+    return state, message
+
+check_info["kaspersky_av_updates"] = {
+    "check_function"        : check_kaspersky_av_updates,
+    "inventory_function"    : inventory_kaspersky_av_updates,
+    "service_description"   : "AV Update Status",
+    "has_perfdata"          : False,
 }
 
-if [ $# -lt 2 ]; then
-    help >&2
-    exit 1
-fi
-
-MYSELF=$(id -nu)
-OUTPUT_PATH=/var/lib/check_mk_agent/job/$MYSELF
-IDENT=$1
-shift
-
-if [ ! -d "$OUTPUT_PATH" ]; then
-    if [ "$MYSELF" = root ] ; then
-        mkdir -p "$OUTPUT_PATH"
-    else
-        echo "ERROR: Missing output directory $OUTPUT_PATH for non-root user '$MYSELF'." >&2
-        exit 1
-    fi
-fi
-
-if ! type $1 >/dev/null 2>&1; then
-    echo -e "ERROR: Cannot run $1. Command not found.\n" >&2
-    help >&2
-    exit 1
-fi
-
-date +"start_time %s" > "$OUTPUT_PATH/.$IDENT.running"
-/usr/bin/time -o "$OUTPUT_PATH/.$IDENT.running" --append \
-              -f "exit_code %x\nreal_time %E\nuser_time %U\nsystem_time %S\nreads %I\nwrites %O\nmax_res_kbytes %M\navg_mem_kbytes %K\ninvol_context_switches %c\nvol_context_switches %w" $@
-RC=$?
-mv "$OUTPUT_PATH/.$IDENT.running" "$OUTPUT_PATH/$IDENT"
-exit $RC

@@ -16,10 +16,10 @@ class omd::check_mk::plugins::puppet(
     source  => "puppet:///modules/omd/plugins/puppet/check_puppet.py",
     require => Package[$pyyaml_pkg],
   }
-  omd::check_mk::addtag{"puppet": omd_sites=>$omd_sites }
+  omd::check_mk::addtag{ "Puppet": omd_sites=>$omd_sites }
 }
 
-define omd::check_mk::server::plugins::puppet(
+define omd::check_mk::plugins::puppet::server(
   $site=$name,
  ) {
   file { "/opt/omd/sites/${site}/share/check_mk/checks/puppet":

@@ -10,7 +10,8 @@ define omd::check_mk::addtag(
   #define our hostnames and inventory exported resources for each OMD site
   #It is the up to the collecting servers to not duplicate resources by collecting both their dedicated resources and the global ones (the "all" tag)
   
-  $tagname=regsubst($name,'[^a-zA-Z0-9._]','_','G')
+  $tagname=regsubst($name,'[^a-zA-Z0-9_]','_','G')
+  #$tagname="$name"
   
   #add the tag to the catalog :
   omd::check_mk::tag {$tagname:}

@@ -30,7 +30,8 @@ define omd::check_mk::import_resources {
   } 
   ->
   exec { "sync omd-all with ${name}" :
-    command => "rsync -a --delete /etc/check_mk/conf.d/omd-all/ /opt/omd/sites/${name}/etc/check_mk/conf.d/omd-all/",
+    command => 'true',
+    #command => "rsync -a --delete /etc/check_mk/conf.d/omd-all/ /opt/omd/sites/${name}/etc/check_mk/conf.d/omd-all/",
     path => ['/usr/bin','/usr/sbin','/bin','/sbin',],
     user => "${name}",
     notify => Exec["checkmk_refresh_${name}"],
@@ -42,13 +43,13 @@ define omd::check_mk::import_resources {
  
   #realize globally explorted resources for all umd sites (tag : all)
   # Realise all the file fragments exported from the monitored hosts
-  File <<| tag == "checkmk_conf_all" |>> ~> Exec ["sync omd-all with ${name}"]
+  #File <<| tag == "checkmk_conf_all" |>> ~> Exec ["sync omd-all with ${name}"]
   # in addition, each one will have a corresponding exec resource, used to re-inventory changes
-  Exec <<| tag == "checkmk_inventory_all" |>> <- Exec ["sync omd-all with ${name}"]
+  #Exec <<| tag == "checkmk_inventory_all" |>> <- Exec ["sync omd-all with ${name}"]
   
   #and realize resources exported only for this omd site, but do not duplicate resources already invotoried :
   #by not "duplicating", I mean : do not duplicate *nagios* resources. 
-  File <<| tag == "checkmk_conf_${name}" and tag !="checkmk_conf_all" |>> ~> Exec["checkmk_refresh_${name}"]
-  Exec <<| tag == "checkmk_inventory_${name}" and tag !="checkmk_inventory_all"  |>> ~> Exec["checkmk_refresh_${name}"]
+  File <<| tag == "checkmk_conf_${name}"  |>> ~> Exec["checkmk_refresh_${name}"]
+  Exec <<| tag == "checkmk_inventory_${name}" |>> ~> Exec["checkmk_refresh_${name}"]
   
 }
