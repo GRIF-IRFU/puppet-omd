@@ -92,6 +92,8 @@ define omd::site(
     ensure  => directory,
     purge   => true,
     recurse => true,
+    owner   => $name,
+    group   => $name, 
     notify  => Exec["checkmk_refresh_${name}"],
     require => Exec["omd create site ${name}"]
   }
