@@ -21,7 +21,7 @@ define omd::check_mk::addhost(
   #define where to put host definition
   $omd_path = $site ? {
     'all' => '/etc/check_mk/conf.d/omd-all',
-    default => "/opt/omd/sites/${site}/etc/check_mk/conf.d"
+    default => "/opt/omd/sites/${site}/etc/check_mk/conf.d/puppet"
   }
   
   #merge host tags
