@@ -176,7 +176,7 @@ Add an MRPE test that will be automatically inventoried ( and exporting a check_
 - add support for notification definition/setup
 - see if we can remove the binary "waitmax" from the module
 
-## note
+## notes
 
 This implements exported resources and collectors for check_mk tags as explained in this blog, but adapted to OMD :
 http://blog.matsharpe.com/2013/01/puppet-checkmk.html
@@ -185,3 +185,18 @@ If you limit cron usage, please make sure to allow the OMD users, for instance, 
     cron::allow {irfu: } -> omd::site {'irfu': }
     
 Tested on : Scientific Linux 6.5
+
+## Changes
+
+2015-02-18 : 
+
+the omd::check_mk::addhost resource did not allow for purging manually added hosts. Those definitions have 
+been moved into the puppet/ subdirectory.
+
+This *WILL* require that you manually cleanup your check_mk host definitions in etc/check_mk/conf.d as it will 
+create duplicate host resources. But now the puppet directory beeing managed, hosts removed from the puppet config will really be automagically 
+removed from check_mk.
+
+The puppet subdirectory was owned by root : owner is now the omd user.
+
+Use text version of the "mode" param in puppet file resources (puppet warning).
