@@ -20,7 +20,7 @@
   concat{"check_mk_puppetvars_${site}_${filename}_${component}":
       owner => "${site}",
       group => "${site}",
-      mode  => 644,
+      mode => '644',
       path => "/opt/omd/sites/${site}/etc/check_mk/${path}/${filename}.mk",
       require => Exec["omd create site ${site}"]
    }

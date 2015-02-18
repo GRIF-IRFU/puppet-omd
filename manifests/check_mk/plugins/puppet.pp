@@ -13,7 +13,7 @@ class omd::check_mk::plugins::puppet(
     owner   => root,
     group   => root,
     ensure  => file,
-    mode    => 0655,
+    mode    => '0655',
     source  => "puppet:///modules/omd/plugins/puppet/check_puppet.py",
     require => Package[$pyyaml_pkg],
   } 

@@ -24,7 +24,7 @@
   
   file { "${mk_checks_dir}${extra_dir}/${check}":
     ensure=>present,
-    mode => 755,
+    mode => '755',
     content => $content
   }
 

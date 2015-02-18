@@ -36,12 +36,12 @@ class omd::check_mk::agent (
     '/usr/bin/mk-job': 
       ensure =>present,
       source => 'puppet:///modules/omd/check_mk/mk-job',
-      mode => 755
+      mode => '755'
     ;
     '/usr/bin/waitmax': 
       ensure =>present,
       source => 'puppet:///modules/omd/check_mk/waitmax',
-      mode => 755
+      mode => '755'
     ;
   }
   
@@ -67,7 +67,7 @@ class omd::check_mk::agent (
   file { '/usr/bin/check_mk_agent':
     ensure =>present,
     content => template('omd/check_mk_agent.erb'),
-    mode => 755
+    mode => '755'
   }
   
 }
