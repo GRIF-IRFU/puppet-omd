@@ -9,7 +9,7 @@
  */
 class omd(
   $with_repo=true,
-  $omd_version='1.10', #or omd-1.11.20140328
+  $omd_version='1.20', #or omd-1.11.20140328
   $omd_release=latest,
 ) {
   
