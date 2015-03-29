@@ -21,9 +21,15 @@ class omd(
       default : { fail("unsupported os family : $::osfamily")}
     }
   }
+
+  case $::osfamily {
+    debian : { $omd_service = "omd-$omd_version" }
+    redhat : { $omd_service = "omd" }
+    default : { fail("unsupported os family : $::osfamily")}
+  }
   
   package {"omd": name => "omd-$omd_version", ensure => $omd_release}
   ->
-  service {'omd': enable=> true, ensure=>running}
+  service {'omd': name => "$omd_service", enable => true, ensure => running}
   
 }
