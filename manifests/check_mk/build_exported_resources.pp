@@ -13,11 +13,13 @@
 #   http://ttboj.wordpress.com/2013/06/04/collecting-duplicate-resources-in-puppet/
 
 define omd::check_mk::build_exported_resources(
-  $allow_duplicates = false
+  $allow_duplicates = false,
+  $monitoring_network = undef,
+  $monitoring_netmask = undef
 ) {
   if $allow_duplicates { # a non empty string is also a true
     # allow the user to specify a specific split string to use...
-    $c = type($allow_duplicates) ? {
+    $c = type3x($allow_duplicates) ? {
           'string' => "${allow_duplicates}",
           default => '#',
     }
@@ -29,7 +31,7 @@ define omd::check_mk::build_exported_resources(
     $realname = inline_template("<%= @name.rindex('${c}').nil?? @name : @name.slice(0, @name.rindex('${c}')) %>")
     $uid = inline_template("<%= @name.rindex('${c}').nil?? '' : @name.slice(@name.rindex('${c}')+'${c}'.length, @name.length-@name.rindex('${c}')-'${c}'.length) %>")
 
-    ensure_resource('omd::check_mk::build_exported_resources', "${realname}",)
+    ensure_resource('omd::check_mk::build_exported_resources', "${realname}", { monitoring_network => $monitoring_network , monitoring_netmask => $monitoring_netmask })
   } else { # body of the actual resource...
     tag('unique')
     $mk_confdir="${name}" ? {
@@ -44,13 +46,22 @@ define omd::check_mk::build_exported_resources(
     } else {
       $mkhostname = $::hostname
     }
-   
-    if $ec2_public_ipv4 {
+    
+    #if there is an amazon public IP, use it
+    if $::ec2_public_ipv4 {
       $override_ip = $ec2_public_ipv4
     } else {
-      $override_ip = $ipaddress
+      #otherwise, attempt to find best IP probably using parameters passed to this resource (network/netmask)
+      $override_ip_tmp = template('omd/monitoring_ipaddress.erb')
+      $override_ip = $override_ip_tmp ? {
+        '' => $::ipaddress,
+        undef => $::ipaddress,
+        default => $override_ip_tmp
+      } 
     }
-   
+    
+    
+    
     # Running 'puppet node clean --unexport <node name="">'
     # on the puppet master will cause these resources to be cleanly
     # removed from the check_mk server.

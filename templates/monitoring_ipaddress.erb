@@ -1,0 +1,19 @@
+<%# Goal of this template is to find out which interface should be exported to the OMD server.
+It can indeed happen that when you're on a multi-network host (openstack host for instance), you have multiple ip addresses.
+And the ::ipaddress fact is then sort of useles as it seems it's taking the ip address of the first interface it finds
+
+In order for it to work, you must pass your network address as a param (e.g : 192.168.1.0) to the calling defined resource.
+You cannot use hiera for defined resources.
+
+In case there are multiplie interfaces using the same network (why ?), we make sure there's only one interface output by separating the loop from the output -%>
+<% if @monitoring_network -%>
+  <%- iface_ip='' -%>
+  <%- @interfaces.split(',').each do |iface| -%>
+    <%- iface_net = 'network_' + iface -%>
+    <%- iface_ipvar = 'ipaddress_' + iface -%>
+    <%- if scope[ iface_net ] == @monitoring_network -%>
+      <%- iface_ip = scope[iface_ipvar] -%>
+    <%- end -%>
+  <%- end -%>
+<% end -%>
+<%= iface_ip -%>

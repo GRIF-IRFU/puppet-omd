@@ -155,12 +155,19 @@ Install the check_mk agent. This will start/enable the xinetd check_mk service :
     #using hiera for specifying the IP whitelist
     include omd::check_mk::agent
     
-Add a check_mk tag "nagios" on a host.
+Add a check_mk tag "nagios" on a host. You can now specify the monitoring network that should be used when exporting the node ipaddress to check_mk, in order to avoid using the ::ipaddress fact in case multiple networks are configured on a host (you should probably use hiera for that...) .
 
     omd::check_mk::addtag{nagios:}
     or
     ensure_resource( 'omd::check_mk::addtag' ,'nagios',{})
-
+    or
+    omd::check_mk::addtag{multi_networks: monitoring_network=> '10.0.0.0', monitoring_netmask: '255.255.255.0' }
+    
+    or add in hierra :
+    # omd::monitoring_network: 10.0.0.0  
+    # omd::monitoring_netmask: 255.255.255.0
+    
+    
 Add an MRPE test that will be automatically inventoried ( and exporting a check_mk tag) :
     
     omd::check_mk::mrpe::check{'hung_nrpe': command=>'/usr/lib/nagios/plugins/check_procs -w :5 -C nrpe'}
@@ -187,6 +194,11 @@ If you limit cron usage, please make sure to allow the OMD users, for instance, 
 Tested on : Scientific Linux 6.5
 
 ## Changes
+
+2015-05-07 : 
+
+added the monitoring network/netmasks for omd::check_mk::addtag, so that this can be used on multi-homed hosts.
+Without this, there was a chance the hosts would export a definition using the wrong ipaddress.
 
 2015-02-18 : 
 
