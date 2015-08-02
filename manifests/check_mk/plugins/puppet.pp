@@ -3,7 +3,7 @@ class omd::check_mk::plugins::puppet(
 ) {
   
   $pyyaml_pkg=$::osfamily ? {
-    Debian => 'python-yaml',
+    'Debian' => 'python-yaml',
     default => PyYAML,
   }
 
