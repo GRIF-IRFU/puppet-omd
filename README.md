@@ -114,6 +114,14 @@ append to arbitrary var
 
     omd::check_mk::var::set {'_toto': site=>'test', content=>'{"a" : 1}' }
     omd::check_mk::var::append {'_toto#a|1': site=>'test', content=>'1' }
+
+Add host static aliases
+
+    # we have to set the variable empty first, in order to avoid breaking check_mk - until it's used, it does not exist and we can't append.
+    # or we could set it for the forst host, and append for others.
+    # or we could set everything in one line (or not) 
+    omd::check_mk::var::set {'extra_host_conf#alias': site=>'test', content=>'[]' }
+    omd::check_mk::var::append {'extra_host_conf#alias|1': site=>'test', content=>'[("myalias" , ["my real hostname"])]' }    
     
 create a nagios service adding it to host tags
 
