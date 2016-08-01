@@ -17,8 +17,6 @@ define omd::multisite::user(
     default => '30'
   }
 
-  #the following include is absolutely required to prevent concat from choking on tmpfile creation - because of the virtual concat base
-  include concat::setup
   concat::fragment{"multisite_${site}_${name}":
     target => "multisite_${site}_users",
     content => "  '${username}',",
