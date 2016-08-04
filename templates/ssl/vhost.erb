@@ -23,7 +23,7 @@ Listen <%= @port %>
 
 <% @sites.each do |site| -%>
 <Location /<%= site %>>
-  ErrorDocument 503 "<meta http-equiv='refresh' content='60'><h1>OMD: Site Not Started</h1>You need to start this site in order to access the web interface.<!-- IE shows its own short useless error message otherwise: placeholder                                                                                                                                                                                                                                                                                                                                                                                   -->"
+  ErrorDocument 503 "<meta http-equiv='refresh' content='60'><h1>OMD: Site Not Started</h1>You need to start this site in order to access the web interface.<!-- IE shows its own short useless error message otherwise: placeholder -->"
   SSLRequireSSL
   AuthName             "check_mk : YOUR CERT IS UNKNOWN. Check with <%= @admin_mail %>"
   AuthType             Basic
