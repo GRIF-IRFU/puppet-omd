@@ -34,7 +34,7 @@
 
       exec {'/usr/sbin/a2ensite zzzz_omd_ssl':
         require => File['/etc/apache2/sites-available/zzzz_omd_ssl.conf'],
-        creates => '/etc/apache2/site-enabled/zzzz_omd_ssl.conf',
+        creates => '/etc/apache2/sites-enabled/zzzz_omd_ssl.conf',
         notify  => Service[omd],
       }
     }
