@@ -16,11 +16,4 @@ class omd::repos::redhat {
     gpgcheck => 1,
     gpgkey => 'https://labs.consol.de/repo/testing/RPM-GPG-KEY',
   }  
-
-  # The epel release is needed to install some dependencies
-  if( $facts['os']['release']['major'] == '7' ) {
-    package { 'epel-release':
-      ensure => present,
-    }
-  }
 }

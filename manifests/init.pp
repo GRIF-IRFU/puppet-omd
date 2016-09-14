@@ -12,8 +12,11 @@ class omd(
   $omd_version='1.20', #or omd-1.11.20140328
   $omd_release=latest,
 ) {
-  
-  
+
+  if( $facts['os']['release']['major'] == '7' ) {
+    require epel
+  }
+
   if($with_repo) {
     case $::osfamily {
       debian : { include omd::repos::debian }
