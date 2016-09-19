@@ -13,7 +13,7 @@ class omd(
   $omd_release=latest,
 ) {
 
-  if( $::osfamily == 'redhat' and $facts['os']['release']['major'] == '7' ) {
+  if( $::osfamily == 'redhat' and $::operatingsystemmajrelease >= '6' ) {
     require epel
   }
 
