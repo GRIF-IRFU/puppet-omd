@@ -12,8 +12,7 @@ class omd(
   $omd_version='1.20', #or omd-1.11.20140328
   $omd_release=latest,
 ) {
-  
-  
+
   if($with_repo) {
     case $::osfamily {
       debian : { include omd::repos::debian }
@@ -24,7 +23,12 @@ class omd(
 
   case $::osfamily {
     debian : { $omd_service = "omd-$omd_version" }
-    redhat : { $omd_service = "omd" }
+    redhat : { 
+      if(0+$::operatingsystemmajrelease >= 6){
+        require epel
+      }
+      $omd_service = "omd"
+    }
     default : { fail("unsupported os family : $::osfamily")}
   }
   
