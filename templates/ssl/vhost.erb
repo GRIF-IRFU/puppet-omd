@@ -11,7 +11,7 @@ Listen <%= @port %>
   SSLCertificateKeyFile <%= @ssl_key %>
   SSLCACertificatePath <%= @ca_dir %>
   SSLVerifyDepth 10
-  SSLVerifyClient require
+  #SSLVerifyClient require
   SSLOptions           +StdEnvVars +FakeBasicAuth
 
   #required by omd-1.30
