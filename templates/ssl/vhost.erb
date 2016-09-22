@@ -1,4 +1,6 @@
+<% if @port.to_i != 443 -%>
 Listen <%= @port %>
+<% end -%>
 <VirtualHost *:<%= @port %>>
   ServerSignature On
   SSLEngine on
