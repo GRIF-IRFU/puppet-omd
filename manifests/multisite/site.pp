@@ -16,7 +16,7 @@ define omd::multisite::site(
   #make sure the base concat file is there
   ensure_resource('concat',"multisite_sites_${site}", { owner => "${site}",
       group => "${site}",
-      mode => '644',
+      mode => '0644',
       path => "/opt/omd/sites/${site}/etc/check_mk/multisite.d/sites.mk",
       require => Exec["omd create site ${site}"]
    }

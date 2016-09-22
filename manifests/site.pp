@@ -20,11 +20,18 @@ define omd::site(
   $puppet_dir="${omd_path}/puppetstate"
   
   exec { "omd create site ${name}":
-    command => "omd create ${name}; omd start ${name}",
+    command => "omd create ${name}",
     path => '/usr/bin',
     creates => "/opt/omd/sites/${name}",
     tag => 'omd_create',
     require => Package['omd']
+  }
+  ~>
+  exec { "omd start site ${name}":
+    refreshonly => true,
+    command => "omd start ${name}",
+    path => '/usr/bin',
+    tag => 'omd_start',
   }
   
   
@@ -78,7 +85,7 @@ define omd::site(
   exec { "omd crontab ${name}":
     command => "omd config ${name} set CRONTAB $cronfile > /dev/null 2>&1 || rm -f $cronfile",
     path => ['/usr/bin','/usr/sbin','/bin','/sbin',],
-    require => Exec["omd maintenance stop site ${name}"], 
+    require => Exec["omd maintenance stop site ${name}","omd create site ${name}"], 
     notify => Exec["omd maintenance start site ${name}"],
     refreshonly => true,
   }
@@ -92,6 +99,7 @@ define omd::site(
     ensure  => directory,
     purge   => true,
     recurse => true,
+    force => true,
     owner   => $name,
     group   => $name, 
     notify  => Exec["checkmk_refresh_${name}"],

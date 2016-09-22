@@ -26,8 +26,9 @@ class omd::check_mk::agent (
   
   #setup directories:
   include omd::common::folders
+  include omd::check_mk::localcheck::directory
   File <| title == '/etc/check_mk' |>
-  file { ['/usr/lib/check_mk_agent', '/usr/lib/check_mk_agent/local', '/usr/lib/check_mk_agent/plugins', '/var/lib/check_mk_agent','/var/lib/check_mk_agent/job',]:
+  file { ['/usr/lib/check_mk_agent', '/usr/lib/check_mk_agent/plugins', '/var/lib/check_mk_agent','/var/lib/check_mk_agent/job',]:
     ensure=>directory
   }
   
@@ -36,12 +37,16 @@ class omd::check_mk::agent (
     '/usr/bin/mk-job': 
       ensure =>present,
       source => 'puppet:///modules/omd/check_mk/mk-job',
-      mode => '755'
+      owner => 0,
+      group => 0,
+      mode => '0755'
     ;
     '/usr/bin/waitmax': 
       ensure =>present,
       source => 'puppet:///modules/omd/check_mk/waitmax',
-      mode => '755'
+      mode => '0755',
+      owner => 0,
+      group => 0,
     ;
   }
   
@@ -67,7 +72,7 @@ class omd::check_mk::agent (
   file { '/usr/bin/check_mk_agent':
     ensure =>present,
     content => template('omd/check_mk_agent.erb'),
-    mode => '755'
+    mode => '0755'
   }
   
 }

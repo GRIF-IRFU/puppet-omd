@@ -21,7 +21,7 @@
    file { '/etc/httpd/conf.d/zzzz_omd_ssl.conf':
     require => Package[httpd], #and debian ? apache2?
     content => template('omd/ssl/vhost.erb'),
-    mode => '644',
+    mode => '0644',
     notify => Service[httpd],
    }
  }

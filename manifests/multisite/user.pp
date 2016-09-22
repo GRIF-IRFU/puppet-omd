@@ -1,6 +1,6 @@
 /**
  * User defined type that will allow defining a user in multisite
- * 
+ *
  * The concat initialisation is done during the omd site setup, we just realize the virtual resources.
  */
 define omd::multisite::user(
@@ -9,7 +9,7 @@ define omd::multisite::user(
   $username=$name, #needed in case of multiple omd sites, to override duplicate definitions
   ) {
   realize(Omd::Multisite::Userinit[$site])
-  
+
   $concat_number = $privileges ? {
     guest => '30',
     admin => '60',

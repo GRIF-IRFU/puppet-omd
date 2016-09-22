@@ -15,7 +15,7 @@ define omd::multisite::userinit() {
    concat{"multisite_${name}_users":
       owner => root,
       group => root,
-      mode => '755',
+      mode => '0755',
       path => "/opt/omd/sites/${name}/etc/check_mk/multisite.d/users.mk",
       require => Exec["omd create site ${name}"]
    }

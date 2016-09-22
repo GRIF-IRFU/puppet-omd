@@ -1,5 +1,5 @@
 <% mktags = [] -%>
-<% system "host "+@mkhostname -%>
+<% system "host", @mkhostname, :out => File::NULL, :err => File::NULL -%>
 <% if (has_variable?("checkmk_no_resolve") || ( $? != 0 )) then -%>
 ipaddresses["<%= @mkhostname -%>"] = "<%= @override_ip %>"
 <% mktags << "brokendns" -%>
