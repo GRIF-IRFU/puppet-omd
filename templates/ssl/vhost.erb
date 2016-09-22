@@ -1,4 +1,6 @@
+<% if @osfamily != "Debian" %>
 Listen <%= @port %>
+<% end %>
 <VirtualHost *:<%= @port %>>
   ServerSignature On
   SSLEngine on
