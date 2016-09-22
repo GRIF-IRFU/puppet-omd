@@ -41,7 +41,7 @@ class omd(
       # The hashlib symlinks are being created as Workaround to a bug in omd Version 1.30.
       # this bug disappeared with unstable version 1.31, and the workaround will be removed hopefully with omd 1.40
       # contribution from https://github.com/Melkor333
-      if( $omd_version='1.30' and $::lsbdistdescription =~ /^CentOS Linux release 7.2/ ) {
+      if( $omd_version=='1.30' and $::lsbdistdescription =~ /^CentOS Linux release 7.2/ ) {
         file { '/opt/omd/versions/1.30/lib/python/hashlib.py':
           ensure  => link,
           target  => "/usr/lib64/python2.7/hashlib.py",
