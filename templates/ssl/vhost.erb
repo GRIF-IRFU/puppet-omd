@@ -27,8 +27,13 @@ Listen <%= @port %>
 </IfModule>
 
   LogLevel info
+<% if @osfamily != "Debian" %>
+  CustomLog /var/log/apache2/omd-access.log combined
+  ErrorLog /var/log/apache2/omd-error.log
+  <% else %>
   CustomLog /var/log/httpd/omd-access.log combined
   ErrorLog /var/log/httpd/omd-error.log
+<% end %>
 
 <% @sites.each do |site| -%>
 <Location /<%= site %>>
