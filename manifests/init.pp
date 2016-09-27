@@ -33,7 +33,7 @@ class omd(
     'RedHat': {
       $omd_service = 'omd'
       $dbi_pkg = 'libdbi'
-      $svc_provider='init'
+      $svc_provider='redhat'
       if( 0+$::operatingsystemmajrelease >= 6 ) {
         require epel
       }
