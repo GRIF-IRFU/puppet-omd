@@ -134,7 +134,7 @@ create a nagios service adding it to a specific host
   
 create a nagios command, and use it
 
-    omd::nagios::command {check_nrpe_long: site=>'irfu', command => '/usr/lib/nagios/plugins/check_nrpe -u -H $HOSTADDRESS$ -c $ARG1$ -t $ARG2$'}
+    omd::nagios::command {check_nrpe_long: site=>'irfu', command => 'PATH="$PATH:/usr/lib64/nagios/plugins:/usr/lib/nagios/plugins" check_nrpe -u -H $HOSTADDRESS$ -c $ARG1$ -t $ARG2$'}
     omd::check_mk::legacy::service {'dummy_cvmfs': site=> 'irfu', command =>'check_nrpe_long!check_hung_ncm!300', mk_tags=>['wn']}
 
 #### monitoring puppet (server side)
@@ -178,7 +178,7 @@ Add a check_mk tag "nagios" on a host. You can now specify the monitoring networ
     
 Add an MRPE test that will be automatically inventoried ( and exporting a check_mk tag) :
     
-    omd::check_mk::mrpe::check{'hung_nrpe': command=>'/usr/lib/nagios/plugins/check_procs -w :5 -C nrpe'}
+    omd::check_mk::mrpe::check{'hung_nrpe': command=>'PATH="$PATH:/usr/lib64/nagios/plugins:/usr/lib/nagios/plugins" check_procs -w :5 -C nrpe'}
 
 #### monitoring puppet (client side)
 
