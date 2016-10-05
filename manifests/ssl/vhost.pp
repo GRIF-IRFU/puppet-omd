@@ -21,10 +21,18 @@
 
  )
  {
-   include ::apache::ssl
-   ::apache::custom_config { 'omd_ssl':
-      ensure   => present,
-      content  => template('omd/ssl/vhost.erb'),
-      priority => $priority,
-    }
- }
+  include ::apache::ssl
+  #
+  # OMD apache setup. puppetlabs apache removes /etc/httpd/conf.d/zzz_omd.conf
+  #
+  file {'/etc/httpd/conf.d/zzz_omd.conf':
+    ensure=>link,
+    target => '/omd/versions/default/share/omd/apache.conf'
+  }
+
+  ::apache::custom_config { 'omd_ssl':
+    ensure   => present,
+    content  => template('omd/ssl/vhost.erb'),
+    priority => $priority,
+  }
+}
