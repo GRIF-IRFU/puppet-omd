@@ -1,0 +1,32 @@
+user_connectors = ['htpasswd', 'ldap']
+default_user_profile = {<% if @default_user_cgroups %>
+	'contactgroups': [<% @default_user_cgroups.each do |cgroup| %>'<%= cgroup %>',<% end %>],<% end %>
+	'roles': [<% @default_user_roles.each do |role| %>'<%= role %>',<% end %>],
+}
+
+ldap_cache_livetime = <%= @lifetime %>
+ldap_active_plugins = { <%= @active_plugins %> }
+
+ldap_connection = {
+  'bind': (u'<%= @bind_dn %>', '<%= @bind_pw %>'),
+  'port': <%= @port %>,
+  'server': '<%= @server %>',
+  'type': '<%= @type %>',
+  'version': <%= @version %>
+}
+
+ldap_userspec = {'dn': u'<%= @user_dn %>',
+ 'scope': '<%= @user_scope %>',
+ 'user_id_umlauts': '<%= @uid_umlauts %>',
+<% if @user_filter -%>
+ 'filter': '<%= @user_filter %>'
+<% end -%>
+}
+
+ldap_debug_log = <%= @debug_log %>
+ldap_groupspec = {'dn': u'<%= @group_dn %>',
+ 'scope': '<%= @group_scope %>',
+<% if @group_filter -%>
+ 'filter': '<%= @group_filter %>'
+<% end -%>
+}
