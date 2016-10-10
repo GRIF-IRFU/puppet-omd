@@ -45,7 +45,7 @@ define omd::site::ldap(
   $user_dn,
   $default_user_roles = ['user'], # Array of default roles
   $default_user_cgroups = undef, # Array of deafult contact groups
-  $site_path="/opt/omd/sites/${name}",
+  $mk_msconfdir="/opt/omd/sites/${name}/etc/check_mk/multisite.d/",
   $active_plugins="'alias': {}, 'auth_expire': {}, 'email': {}", # These three are automatically set
   $port="389",
   $type="ad",
@@ -59,8 +59,6 @@ define omd::site::ldap(
   $group_filter=undef,
   $uid_umlauts='keep', #'replace' to replace special characters, 'keep' to keep them
 ){
-
-  $mk_msconfdir = "${site_path}/etc/check_mk/multisite.d/"
 
   file { "${mk_msconfdir}/ldap.mk":
     ensure => file,
