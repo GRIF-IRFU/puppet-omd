@@ -30,12 +30,11 @@
  * Or for the authentication expiration
  * "'auth_expire': { }"
  * The following assigns two ldap groups to the admin roles and one to the user role
- * and it does also activate the 'nested' value
+ * and it does also activate the 'nested' value. (The 'u' before the variable enforces unicode)
  * "'groups_to_roles': {'admin':
- *    [u'CN=monitoring-admins,OU=Groups,OU=Zurich,DC=company,DC=com',
- *    u'CN=monitoring-admin,OU=Groups,OU=Zurich,DC=Zurich,DC=company,DC=com',],
+ *    u'CN=monitoring-admin,OU=Groups,OU=Zurich,DC=company,DC=com',
  *    'nested': True,
- *    'user': [u'CN=monitoring-users,OU=Groups,OU=Zurich,DC=company,DC=com',]}"
+ *    'user': u'CN=monitoring-users,OU=Groups,OU=Zurich,DC=company,DC=com',}"
  */
 
 define omd::site::ldap(
@@ -51,6 +50,7 @@ define omd::site::ldap(
   $port="389",
   $type="ad",
   $version="3",
+  $use_ssl = false,
   $lifetime="300",
   $debug_log="False",
   $user_scope='sub', # 'sub' for the whole subtree, 'base' for only the base dn, 'one' for

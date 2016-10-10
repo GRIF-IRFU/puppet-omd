@@ -12,7 +12,8 @@ ldap_connection = {
   'port': <%= @port %>,
   'server': '<%= @server %>',
   'type': '<%= @type %>',
-  'version': <%= @version %>
+  'version': <%= @version %>,
+  <% if @use_ssl %>'use_ssl': True,<% end %>
 }
 
 ldap_userspec = {'dn': u'<%= @user_dn %>',
