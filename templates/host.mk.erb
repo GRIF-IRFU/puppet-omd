@@ -1,4 +1,4 @@
 all_hosts += ['<%= @hname %>|<%= @htags %>']
 <% if @ip -%>
-ipaddresses.update({'<%= @hname %>': u'<%= @ip %>'})
+ipaddresses['<%= @hname %>'] = u'<%= @ip %>'
 <% end -%>
