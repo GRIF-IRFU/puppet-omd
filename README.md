@@ -152,8 +152,48 @@ If you have nodes that should not be monitored anymore using the puppetdb (remov
 If you happen to be using foreman for managing your nodes, take a look at the puppetdb_foreman plugin (for foreman), which is aslo shiped as an RPM (ruby193-rubygem-puppetdb_foreman) by the foreman team :
 https://github.com/theforeman/puppetdb_foreman
 
+#### Ldap connection
+
+Ldap connections in check_mk allow a lot of different configurations. Thus, setting up ldap requires the user to know exactly what he needs.
+This is an example of how to set up a connection to a ActiveDirectory Server using the standard port and Version 3:
+
+First, we need to define the server address & login credentials. The name needs to be the site name (at moment, only one ldap connection is allowed with check_mk:
+
+    omd::site::ldap { 'irfu':
+      server  => 'intra.irfu.com',
+      bind_dn => 'admin@intra.irfu.com',
+      bind_pw => 'password',
+
+A user base dn, user filter and user scope can be used to get the right users. 'uid_umlauts' defines, how umlauts should be handled:
+
+    user_dn     => 'OU=Users,DC=intra,DC=irfu,DC=com',
+    user_filter => '(&(objectclass=user)(objectcategory=person))',
+    user_scope  => 'sub', # sub means the whole subtree, 'base' (only this dn) and 'one' (go one more down) are also available
+    uid_umlauts => 'replace', # Default setting here is 'keep'
 
 
+The next thing is to activate define the base dn for users & groups and the scope. If required, a group-filter can also be used
+
+    group_dn     => 'OU=Groups,DC=intra,DC=irfu,DC=com',
+    group_filter => '(&(objectclass=group)(CN=monitoring*))',
+    group_scope  => 'sub', # sub is the default, so this setting wouldn't be needed. Same for user_scope
+
+Additional settings can be applied like default roles & contact groups:
+
+    default_user_roles   => ['guest'],
+    default_user_cgroups => ['first_level'],
+
+Defining the active plugins is a little more tricky. The wato allows various different settings, so this is handled in only one big string. The following example manually defines the alias and maps groups to roles:
+
+    active_plugins => " 'alias' : { 'attr' : 'userPrincipalName' },
+                        'groups_to_toles' : {
+                          'admin' : u'CN=monitoring-admins,OU=Groups,DC=intra,DC=irfu,DC=com',
+                          'user' : u'CN=monitoring-users,OU=Groups,DC=intra,DC=irfu,DC=com',
+                          'nested' : True, # This sets nested groups (local-global) to true
+                        },",
+If ssl is required, add the following:
+
+	use_ssl => true,
 
 ## How to use the client side
 ------------------------------

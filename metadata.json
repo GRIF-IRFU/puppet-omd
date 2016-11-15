@@ -9,7 +9,6 @@
   ],
   "license": "CeCILL-C_V1",
   "name": "fschaer-omd",
-  "operatingsystem_support": [],
   "project_page": "https://github.com/GRIF-IRFU/puppet-omd",
   "requirements": [],
   "operatingsystem_support": [
