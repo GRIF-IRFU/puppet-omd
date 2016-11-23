@@ -91,6 +91,9 @@ check parameters...
     
     #don't use the deprecated network check
     omd::check_mk::var::set {linux_nic_check: site=>'test', content=>'"lnx_if"'}
+
+    #Adding a seconf check_parameter with descriptive resource name (the concat order can be given, but doesn't have to):
+    omd::check_mk::var::append { 'boot_partition': site=>'test', type=>'check_parameters', content=>'[( (95,98,1)  ,   ALL_HOSTS, [ "fs_/boot$",])]'}
     
 Performance data...
 
