@@ -5,6 +5,8 @@
 # the host. It is important to note that, although these resources are created on the client,
 # they are actually realised on the monitoring server.
 #
+# 25/04/2017 - github feature request - future parser compatibility (#27) : change the # default char of the allow_duplicated to accomodate puppet4/future parser
+#
 # 21/03/2014 - Update by F.SCHAER :
 #  make the class OMD compliant, and use the users home dir as a base. The resource name is the omd site name
 #
@@ -13,23 +15,24 @@
 #   http://ttboj.wordpress.com/2013/06/04/collecting-duplicate-resources-in-puppet/
 
 define omd::check_mk::build_exported_resources(
-  $allow_duplicates = false,
+  $allow_duplicates = undef,
   $monitoring_network = undef,
   $monitoring_netmask = undef
 ) {
-  if $allow_duplicates { # a non empty string is also a true
+  # a non empty string is true, and in puppet4, the emtpy string *also* is true (false in puppet3), hence base the decision on "undef or anything"
+  if $allow_duplicates {
     # allow the user to specify a specific split string to use...
     $c = type3x($allow_duplicates) ? {
           'string' => "${allow_duplicates}",
-          default => '#',
+          default => '_XxX_',
     }
     if "${c}" == '' {
           fail('Split character(s) cannot be empty!')
     }
 
     # split into $realname-$uid where $realname can contain split chars
-    $realname = inline_template("<%= @name.rindex('${c}').nil?? @name : @name.slice(0, @name.rindex('${c}')) %>")
-    $uid = inline_template("<%= @name.rindex('${c}').nil?? '' : @name.slice(@name.rindex('${c}')+'${c}'.length, @name.length-@name.rindex('${c}')-'${c}'.length) %>")
+    $realname = inline_template("<%= @name.rindex(@c).nil?? @name : @name.slice(0, @name.rindex(@c)) %>")
+    $uid = inline_template("<%= @name.rindex(@c).nil?? '' : @name.slice(@name.rindex(@c)+@c.length, @name.length-@name.rindex(@c)-@c.length) %>")
 
     ensure_resource('omd::check_mk::build_exported_resources', "${realname}", { monitoring_network => $monitoring_network , monitoring_netmask => $monitoring_netmask })
   } else { # body of the actual resource...
