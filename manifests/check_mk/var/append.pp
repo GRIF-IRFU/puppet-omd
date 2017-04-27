@@ -25,6 +25,7 @@
 define omd::check_mk::var::append(
   $site,
   $content,
+  $type=undef,
   $concat_order=20,
   $cfgfile=undef,
   $component='check_mk', #this allows to define config files for other components. Currently, only multisite|check_mk is allowed
@@ -76,9 +77,13 @@ define omd::check_mk::var::append(
     default => $array_name[1]
   }
 
-  $var_str=$subvar ? {
-    undef => "${array_name[0]} +=",
-    default => "${array_name[0]}['${subvar}'] +=",
+  if $type {
+    $var_str = "${type} +="
+  } else {
+    $var_str=$subvar ? {
+      undef => "${array_name[0]} +=",
+      default => "${array_name[0]}['${subvar}'] +=",
+    }
   }
 
 
