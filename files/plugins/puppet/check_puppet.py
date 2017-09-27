@@ -4,6 +4,7 @@ from yaml import load
 
 # if your puppet has a different statefile, modify it here
 #STATEFILE = "/var/lib/puppet/state/last_run_summary.yaml"
+STATEFILE = "/opt/puppetlabs/puppet/cache/state/last_run_summary.yaml"
 #try to detect this now. Please note that running this through xinetd requires us to prepend known puppet paths before calling the command
 import subprocess
 import os

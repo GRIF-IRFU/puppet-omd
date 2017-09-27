@@ -57,11 +57,11 @@ define omd::check_mk::var::append(
 
   $increment=$array_i[1] ? {
     undef=>'0',
-    /^[0-9]+$/ => $array_i[1],
+    /^[0-9]+$/ => "$array_i[1]",
     default => inline_template('<%= @array_i[1].sum %>') #make sure an increment "string" is converted to an integer increment
   }
 
-  validate_re($increment, '^[0-9]+$')
+  validate_re("$increment", "^[0-9]+$")
   $real_concat_order=$concat_order + $increment
 
   #find if there is a subvar :
