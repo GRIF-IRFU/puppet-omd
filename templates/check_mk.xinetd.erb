@@ -38,9 +38,9 @@ service check_mk
 	#server         = /usr/bin/check_mk_caching_agent
 
 	# configure the IP address(es) of your Nagios server here:
-<% if @only_from -%>
-  only_from = 127.0.0.1 <%= @only_from %>
-<% end -%>
+	#<% if @only_from -%>
+	#  only_from = 127.0.0.1 <%= @only_from %>
+	#<% end -%>
 	# Don't be too verbose. Don't log every check. This might be
 	# commented out for debugging. If this option is commented out
 	# the default options will be used for this service.

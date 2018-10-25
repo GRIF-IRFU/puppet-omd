@@ -12,7 +12,7 @@
    concat{"mrpe.cfg":
       owner => root,
       group => root,
-      mode => '0644',
+      mode => '644',
       path => $mrpe_cfg,
       require => File[$mk_location]
    }

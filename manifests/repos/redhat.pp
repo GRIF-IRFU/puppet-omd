@@ -9,11 +9,11 @@ class omd::repos::redhat {
   }
   
   #test releases
-  yumrepo { "omd-testing":
-    baseurl => "https://labs.consol.de/repo/testing/rhel${::operatingsystemmajrelease}/${::architecture}",
-    descr => "Consol* Labs TESTING Repository",
-    enabled => 1,
-    gpgcheck => 1,
-    gpgkey => 'https://labs.consol.de/repo/testing/RPM-GPG-KEY',
-  }  
+#  yumrepo { "omd-testing":
+#    baseurl => "https://labs.consol.de/repo/testing/rhel${::operatingsystemmajrelease}/${::architecture}",
+#    descr => "Consol* Labs TESTING Repository",
+#    enabled => 1,
+#    gpgcheck => 1,
+#    gpgkey => 'https://labs.consol.de/repo/testing/RPM-GPG-KEY',
+#  }  
 }

@@ -1,25 +1,30 @@
 {
+  "name": "fschaer-omd",
+  "version": "1.0.3",
   "author": "Frederic Schaer",
+  "summary": "A module that allows to build an OMD server (nagios+check_mk+other goodies) using exported resources on the monitored hosts.",
+  "license": "CeCILL-C_V1",
+  "source": "https://github.com/GRIF-IRFU/puppet-omd",
+  "project_page": "https://github.com/GRIF-IRFU/puppet-omd",
+  "issues_url": "https://github.com/GRIF-IRFU/puppet-omd/issues",
   "dependencies": [
     {"name":"puppetlabs/stdlib","version_requirement":">= 3.2.0"},
     {"name":"puppetlabs/concat","version_requirement":">= 1.2.0"},
     {"name":"puppetlabs/xinetd","version_requirement":">= 1.5.0"},
-    {"name":"puppetlabs/apt","version_requirement":">= 1.8.0"},
-    {"name":"stahnma/epel","version_requirement":">= 1.2.0"}
+    {"name":"puppetlabs/apt","version_requirement":">= 1.8.0"}
   ],
-  "license": "CeCILL-C_V1",
-  "name": "fschaer-omd",
-  "operatingsystem_support": [],
-  "project_page": "https://github.com/GRIF-IRFU/puppet-omd",
-  "requirements": [],
   "operatingsystem_support": [
     {
-    "operatingsystem":"RedHat",
-    "operatingsystemrelease":[ "6.0", "7.0"]
+      "operatingsystem": "RedHat",
+      "operatingsystemrelease": [
+        "6.0"
+      ]
     }
   ],
-  "source": "https://github.com/GRIF-IRFU/puppet-omd",
-  "summary": "A module that allows to build an OMD server (nagios+check_mk+other goodies) using exported resources on the monitored hosts.",
-  "tags": [],
-  "version": "1.0.3"
+  "requirements": [
+  
+  ],
+  "tags": [
+  
+  ]
 }

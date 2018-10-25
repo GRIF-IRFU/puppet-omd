@@ -1,6 +1,4 @@
-<% if @port.to_i != 443 -%>
 Listen <%= @port %>
-<% end -%>
 <VirtualHost *:<%= @port %>>
   ServerSignature On
   SSLEngine on
@@ -11,11 +9,8 @@ Listen <%= @port %>
   SSLCertificateKeyFile <%= @ssl_key %>
   SSLCACertificatePath <%= @ca_dir %>
   SSLVerifyDepth 10
-  SSLVerifyClient <%= if(@ssl_force_client_cert) then 'require' else 'optional' end %>
+  SSLVerifyClient require
   SSLOptions           +StdEnvVars +FakeBasicAuth
-
-  #required by omd-1.30
-  RequestHeader set X-Forwarded-Proto "https"
 
 <Directory />
   Options +FollowSymlinks
@@ -26,13 +21,9 @@ Listen <%= @port %>
   ProxyPreserveHost On
 </IfModule>
 
-  LogLevel info
-  CustomLog /var/log/httpd/omd-access.log combined
-  ErrorLog /var/log/httpd/omd-error.log
-
 <% @sites.each do |site| -%>
 <Location /<%= site %>>
-  ErrorDocument 503 "<meta http-equiv='refresh' content='60'><h1>OMD: Site Not Started</h1>You need to start this site in order to access the web interface.<!-- IE shows its own short useless error message otherwise: placeholder -->"
+  ErrorDocument 503 "<meta http-equiv='refresh' content='60'><h1>OMD: Site Not Started</h1>You need to start this site in order to access the web interface.<!-- IE shows its own short useless error message otherwise: placeholder                                                                                                                                                                                                                                                                                                                                                                                   -->"
   SSLRequireSSL
   AuthName             "check_mk : YOUR CERT IS UNKNOWN. Check with <%= @admin_mail %>"
   AuthType             Basic

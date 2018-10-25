@@ -11,7 +11,6 @@ class omd::common::folders {
     "/etc/check_mk/conf.d/omd-all":
       purge   => true,
       recurse => true,
-      force => true,
       ensure=> directory,
       tag => 'check_mk_folder',
   }

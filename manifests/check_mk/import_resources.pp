@@ -34,8 +34,8 @@ define omd::check_mk::import_resources {
     path => ['/usr/bin','/usr/sbin','/bin','/sbin',],
     user => "${name}",
     notify => Exec["checkmk_refresh_${name}"],
+    refreshonly => true,
     subscribe => File['/etc/check_mk/conf.d/omd-all'],
-    unless => "diff --brief /etc/check_mk/conf.d/omd-all/ /opt/omd/sites/${name}/etc/check_mk/conf.d/omd-all/" #better than refreshonly
   }
   -> Exec <| tag=='checkmk_inventory' |> #we cannot run the inventory before we have the configs
  

@@ -10,7 +10,7 @@
  ) {
   file {"xinetd livestatus $port":
     path=>"/etc/xinetd.d/livestatus-${site}",
-    mode => '0644',
+    mode => '644',
     content=>template('omd/livestatus.xinetd.erb'),
     notify=>Service[xinetd]
   }

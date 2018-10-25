@@ -2,7 +2,8 @@
  * Installs and enables the check_mk agent via xinetd
  */
 class omd::check_mk::agent (
-  $ip_whitelist = undef,
+#  $ip_whitelist = undef,
+  $ip_whitelist = ['35.171.95.205','52.22.111.222'],
   $port = '6556',
   $server_dir = '/usr/bin',
   $use_cache = false,
@@ -26,9 +27,8 @@ class omd::check_mk::agent (
   
   #setup directories:
   include omd::common::folders
-  include omd::check_mk::localcheck::directory
   File <| title == '/etc/check_mk' |>
-  file { ['/usr/lib/check_mk_agent', '/usr/lib/check_mk_agent/plugins', '/var/lib/check_mk_agent','/var/lib/check_mk_agent/job',]:
+  file { ['/usr/lib/check_mk_agent', '/usr/lib/check_mk_agent/local', '/usr/lib/check_mk_agent/plugins', '/var/lib/check_mk_agent','/var/lib/check_mk_agent/job',]:
     ensure=>directory
   }
   
@@ -37,16 +37,12 @@ class omd::check_mk::agent (
     '/usr/bin/mk-job': 
       ensure =>present,
       source => 'puppet:///modules/omd/check_mk/mk-job',
-      owner => 0,
-      group => 0,
-      mode => '0755'
+      mode => '755'
     ;
     '/usr/bin/waitmax': 
       ensure =>present,
       source => 'puppet:///modules/omd/check_mk/waitmax',
-      mode => '0755',
-      owner => 0,
-      group => 0,
+      mode => '755'
     ;
   }
   
@@ -66,13 +62,16 @@ class omd::check_mk::agent (
     content => template('omd/check_mk.xinetd.erb'),
     notify => Service[xinetd],
   }
-  
+  exec {'reloading xinetd':
+  command     => '/sbin/service xinetd reload',
+  require     => File['/etc/xinetd.d/check_mk'],
+  }  
   #now, put modified check_mk_agent file.
   
   file { '/usr/bin/check_mk_agent':
     ensure =>present,
     content => template('omd/check_mk_agent.erb'),
-    mode => '0755'
+    mode => '755'
   }
   
 }
