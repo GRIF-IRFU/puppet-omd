@@ -18,7 +18,7 @@
   "source": "https://github.com/GRIF-IRFU/puppet-omd",
   "summary": "A module that allows to build an OMD server (nagios+check_mk+other goodies) using exported resources on the monitored hosts.",
   "tags": [],
-  "version": "1.0.3",
+  "version": "1.1.0",
   "requirements": [
         {
             "name": "puppet",
