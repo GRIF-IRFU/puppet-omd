@@ -18,6 +18,7 @@
   $ssl_force_client_cert=true, #this is the "SSLVerifyClient require" option. If false, this will be defined as SSLVerifyClient optional
   $admin_mail='admin mail not set',
   $priority='zzzz',
+  String $logdir,
  )
  {
   include ::apache::mod::ssl

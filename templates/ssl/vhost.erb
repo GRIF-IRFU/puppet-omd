@@ -27,8 +27,8 @@ Listen <%= @port %>
 </IfModule>
 
   LogLevel info
-  CustomLog /var/log/httpd/omd-access.log combined
-  ErrorLog /var/log/httpd/omd-error.log
+  CustomLog <%= @logdir %>/omd-access.log combined
+  ErrorLog <%= @logdir %>/omd-error.log
 
 <% @sites.each do |site| -%>
 <Location /<%= site %>>

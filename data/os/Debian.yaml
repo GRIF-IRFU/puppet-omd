@@ -1,2 +1,3 @@
 ---
 omd::pkg_extension: deb
+omd::ssl::vhost::logdir: /var/log/apache2
