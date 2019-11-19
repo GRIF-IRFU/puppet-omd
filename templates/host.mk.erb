@@ -1,0 +1,4 @@
+all_hosts += ['<%= @hname %>|<%= @htags %>']
+<% if @ip -%>
+ipaddresses['<%= @hname %>'] = u'<%= @ip %>'
+<% end -%>

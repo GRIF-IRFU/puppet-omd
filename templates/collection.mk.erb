@@ -1,8 +1,7 @@
 <% mktags = [] -%>
-<% system "host", @mkhostname, :out => File::NULL, :err => File::NULL -%>
-<% if (has_variable?("checkmk_no_resolve") || ( $? != 0 )) then -%>
+<% if @override_ip and @override_ip != "" and (scope["brokendns"] or @use_cloud_ip) -%>
 ipaddresses["<%= @mkhostname -%>"] = "<%= @override_ip %>"
-<% mktags << "brokendns" -%>
+<%- mktags << "brokendns" -%>  
 <% end -%>
 <% scope.catalog.resource_keys.select { |r,name| r == "Omd::Check_mk::Tag"}.each do |r,name| -%>
 <% mktags << name -%>

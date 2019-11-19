@@ -5,20 +5,24 @@
     {"name":"puppetlabs/concat","version_requirement":">= 1.2.0"},
     {"name":"puppetlabs/xinetd","version_requirement":">= 1.5.0"},
     {"name":"puppetlabs/apt","version_requirement":">= 1.8.0"},
-    {"name":"stahnma/epel","version_requirement":">= 1.2.0"}
+    {"name":"stahnma/epel","version_requirement":">= 1.2.0"},
+    {"name": "puppet/archive", "version_requirement": ">= 0.5.0" }
   ],
   "license": "CeCILL-C_V1",
   "name": "fschaer-omd",
   "project_page": "https://github.com/GRIF-IRFU/puppet-omd",
-  "requirements": [],
   "operatingsystem_support": [
-    {
-    "operatingsystem":"RedHat",
-    "operatingsystemrelease":[ "6.0", "7.0"]
-    }
+    { "operatingsystem":"RedHat",  "operatingsystemrelease":[ "6.0", "7.0"] },
+    { "operatingsystem": "Ubuntu", "operatingsystemrelease": [  "18.04" ] }
   ],
   "source": "https://github.com/GRIF-IRFU/puppet-omd",
   "summary": "A module that allows to build an OMD server (nagios+check_mk+other goodies) using exported resources on the monitored hosts.",
   "tags": [],
-  "version": "1.0.3"
+  "version": "1.1.0",
+  "requirements": [
+        {
+            "name": "puppet",
+            "version_requirement": "5.x"
+        }
+    ]
 }

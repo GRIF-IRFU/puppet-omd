@@ -1,19 +1,19 @@
-#!/usr/bin/python
+#!/usr/bin/env python2
 from time import time
 from yaml import load
 
-# if your puppet has a different statefile, modify it here
-#STATEFILE = "/var/lib/puppet/state/last_run_summary.yaml"
-#try to detect this now. Please note that running this through xinetd requires us to prepend known puppet paths before calling the command
-import subprocess
-import os
-
-newenv=os.environ.copy()
-newenv.update(PATH=newenv['PATH'] + os.pathsep + '/opt/puppetlabs/bin')
-proc = subprocess.Popen('puppet config print statedir 2>/dev/null | head -n 1', stderr=subprocess.STDOUT, stdout=subprocess.PIPE, shell=True, env=newenv)
-(out, err) = proc.communicate()
-STATEFILE="%s/last_run_summary.yaml" % out.rstrip()
-
+# if your puppet has a different statefile, modify it here, or uncomment the code that's able to detect it, at the expence of an increased runtime overhead
+STATEFILE = "/opt/puppetlabs/puppet/cache/state/last_run_summary.yaml"
+# or try to detect this . Please note that running this through xinetd requires us to prepend known puppet paths before calling the command
+#--
+# import subprocess
+# import os
+# newenv=os.environ.copy()
+# newenv.update(PATH=newenv['PATH'] + os.pathsep + '/opt/puppetlabs/bin')
+# proc = subprocess.Popen('puppet config print statedir 2>/dev/null | head -n 1', stderr=subprocess.STDOUT, stdout=subprocess.PIPE, shell=True, env=newenv)
+# (out, err) = proc.communicate()
+# STATEFILE="%s/last_run_summary.yaml" % out.rstrip()
+#--
 
 def main():
     print '<<<puppet>>>'

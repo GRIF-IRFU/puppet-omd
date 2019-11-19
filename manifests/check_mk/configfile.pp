@@ -8,7 +8,8 @@
    $filename=$name, #required in case there are 2 omd sites
    $component='check_mk', #this allows to define config files for other components. Currently, only multisite|check_mk is allowed
  ) {
-  
+  include ::omd::common::anchors
+
   # multisite or check_mk ?
   $path = $component ? {
     'multisite' => 'multisite.d',
@@ -25,7 +26,7 @@
       require => Exec["omd create site ${site}"]
    }
    ->
-   Exec <| tag == "checkmk_inventory" |>
+   Anchor['checkmk_inventory']
    
    concat::fragment{"check_mk_puppetvars_${site}_${filename}_${component}_header":
       target => "check_mk_puppetvars_${site}_${filename}_${component}",
@@ -33,6 +34,6 @@
       order => "000",
    }
    ->
-   Exec <| tag == "checkmk_inventory" |>
+   Anchor['checkmk_inventory']
    
  }

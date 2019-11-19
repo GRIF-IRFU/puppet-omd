@@ -1,0 +1,10 @@
+#
+# **DEFAULT** class params are here : please don't change *this* yaml, but yours in your hierarchy
+---
+#official download web url :
+# https://checkmk.com/download.php?edition=cre&version=stable&dist=redhat
+omd::pkg_basename: check-mk-raw
+omd::download_baseurl: https://checkmk.com/support
+omd::checksum_type: sha256
+omd::version: 1.6.0p6
+omd::pkg_creates: /opt/omd/versions/1.6.0p6.cre

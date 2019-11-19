@@ -1,0 +1,4 @@
+---
+#https://checkmk.com/support/1.6.0p6/check-mk-raw-1.6.0p6_0.buster_amd64.deb
+omd::release: 0.buster
+omd::checksum: 0b6220b6e58f452ef8b1384c65d75377ea32d33b274e9196f3f9700878290b53

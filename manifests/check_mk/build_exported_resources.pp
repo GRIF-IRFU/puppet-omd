@@ -5,6 +5,8 @@
 # the host. It is important to note that, although these resources are created on the client,
 # they are actually realised on the monitoring server.
 #
+# 25/04/2017 - github feature request - future parser compatibility (#27) : change the # default char of the allow_duplicated to accomodate puppet4/future parser
+#
 # 21/03/2014 - Update by F.SCHAER :
 #  make the class OMD compliant, and use the users home dir as a base. The resource name is the omd site name
 #
@@ -13,25 +15,34 @@
 #   http://ttboj.wordpress.com/2013/06/04/collecting-duplicate-resources-in-puppet/
 
 define omd::check_mk::build_exported_resources(
-  $allow_duplicates = false,
+  $allow_duplicates = undef,
   $monitoring_network = undef,
-  $monitoring_netmask = undef
+  $brokendns = lookup('omd::brokendns',{ default_value => false })                     , # set to true if you want to hardcode ipadresses on the omd server...
+  $use_cloud_public_ip = lookup('omd::user_cloud_public_ip',{ default_value => true }) , # set to false if your cloud instances do have DNS resolution from the omd server
 ) {
-  if $allow_duplicates { # a non empty string is also a true
+
+  #determine if host is a public cloud host
+  $use_cloud_ip = $facts['ec2_metadata'] ? {
+    undef => false,
+    default => $use_cloud_public_ip
+  }
+
+  # a non empty string is true, and in puppet4, the emtpy string *also* is true (false in puppet3), hence base the decision on "undef or anything"
+  if $allow_duplicates {
     # allow the user to specify a specific split string to use...
     $c = type3x($allow_duplicates) ? {
           'string' => "${allow_duplicates}",
-          default => '#',
+          default => '_XxX_',
     }
     if "${c}" == '' {
           fail('Split character(s) cannot be empty!')
     }
 
     # split into $realname-$uid where $realname can contain split chars
-    $realname = inline_template("<%= @name.rindex('${c}').nil?? @name : @name.slice(0, @name.rindex('${c}')) %>")
-    $uid = inline_template("<%= @name.rindex('${c}').nil?? '' : @name.slice(@name.rindex('${c}')+'${c}'.length, @name.length-@name.rindex('${c}')-'${c}'.length) %>")
+    $realname = inline_template("<%= @name.rindex(@c).nil?? @name : @name.slice(0, @name.rindex(@c)) %>")
+    $uid = inline_template("<%= @name.rindex(@c).nil?? '' : @name.slice(@name.rindex(@c)+@c.length, @name.length-@name.rindex(@c)-@c.length) %>")
 
-    ensure_resource('omd::check_mk::build_exported_resources', "${realname}", { monitoring_network => $monitoring_network , monitoring_netmask => $monitoring_netmask })
+    ensure_resource('omd::check_mk::build_exported_resources', "${realname}", { monitoring_network => $monitoring_network })
   } else { # body of the actual resource...
     tag('unique')
     $mk_confdir="${name}" ? {
@@ -39,25 +50,41 @@ define omd::check_mk::build_exported_resources(
       default => "/opt/omd/sites/${name}/etc/check_mk/conf.d/puppet"
     }
 
-    $checkmk_no_resolve = true
-
     if $::fqdn {
       $mkhostname = $::fqdn
     } else {
       $mkhostname = $::hostname
     }
 
-    #if there is an amazon public IP, use it
-    if defined('$::ec2_public_ipv4') {
-      $override_ip = $::ec2_public_ipv4
+    #if there is an amazon or openstack public IP, use it
+    $cloud_ip = $facts.dig('ec2_metadata','public-ipv4')
+    if $cloud_ip {
+      $override_ip = $cloud_ip
     } else {
       #otherwise, attempt to find best IP probably using parameters passed to this resource (network/netmask)
-      $override_ip_tmp = template('omd/monitoring_ipaddress.erb')
-      $override_ip = $override_ip_tmp ? {
-        '' => $::ipaddress,
-        undef => $::ipaddress,
-        default => $override_ip_tmp
+
+      if "$monitoring_network" =~ /:/ {
+        #monitoring network is ipv6
+        $ip_bindings='bindings6'
       }
+      elsif "$monitoring_network" =~ /\./ {
+        #monitoring network is ipv4
+        $ip_bindings='bindings'
+      }
+      else {
+        #no monitoring network given
+        $ip_bindings=undef
+      }
+
+      $override_ip = template('omd/monitoring_ipaddress.erb')
+
+    }
+
+    #if there is an IP override, use it for the check_mk inventory command :
+    $inventory_ip_str = $override_ip ? {
+      undef => '',
+      ''    => '',
+      default => "--fake-dns $override_ip"
     }
 
 
@@ -78,7 +105,7 @@ define omd::check_mk::build_exported_resources(
     #this is the omd specificity to be able to run multiple instances that makes this over-complicated
     if("${name}" == "all") {
       @@exec { "checkmk_inventory_${mkhostname}_${name}":
-        command     => "bash -c 'cd /opt/omd/sites ; for i in * ; do sudo -i -u \${i} bin/cmk -I $mkhostname ; done'",
+        command     => "bash -c 'cd /opt/omd/sites ; for i in * ; do sudo -i -u \${i} bin/cmk $inventory_ip_str -I $mkhostname ; done'",
         path => ['/usr/bin','/usr/sbin','/bin','/sbin',],
         notify      => Exec["checkmk_refresh_${name}"],
         refreshonly => true,
@@ -88,7 +115,7 @@ define omd::check_mk::build_exported_resources(
       }
     } else {
       @@exec { "checkmk_inventory_${mkhostname}_${name}":
-        command     => "sudo -i -u ${name} /opt/omd/sites/${name}/bin/cmk -I $mkhostname",
+        command     => "sudo -i -u ${name} /opt/omd/sites/${name}/bin/cmk $inventory_ip_str -I $mkhostname",
         path => ['/usr/bin','/usr/sbin','/bin','/sbin',],
         notify      => Exec["checkmk_refresh_${name}"],
         refreshonly => true,

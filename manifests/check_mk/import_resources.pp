@@ -20,6 +20,8 @@
 #  One of the consequences is that we must add more tags to the exported resources, to be able 
 #   to restrict (or not) exported resources to some OMD instances
 define omd::check_mk::import_resources {
+
+  include ::omd::common::anchors
  
   #use the global /etc check_mk config global to all OMD sites :
   # I've tryed symlinking the global directory : this did not work , check_mk ignores symlinks...so we must rsync.
@@ -37,7 +39,8 @@ define omd::check_mk::import_resources {
     subscribe => File['/etc/check_mk/conf.d/omd-all'],
     unless => "diff --brief /etc/check_mk/conf.d/omd-all/ /opt/omd/sites/${name}/etc/check_mk/conf.d/omd-all/" #better than refreshonly
   }
-  -> Exec <| tag=='checkmk_inventory' |> #we cannot run the inventory before we have the configs
+  ->
+  Anchor['checkmk_inventory'] #we cannot run the inventory before we have the configs
  
  
   #realize globally explorted resources for all umd sites (tag : all)
