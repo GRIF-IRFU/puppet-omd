@@ -10,7 +10,6 @@
 # The list of sites on which the tag will be exported.
 #
 # [ monitoring_network ]
-# [ monitoring_netmask ]
 #
 # The network address that must be used when exporting a node definition to OMD.
 # This is usefull in case you have multiple networks defined on a node, in which case the ipaddress fact contains the first interface IP, not necessarily what you want.
@@ -24,19 +23,17 @@
 # In that case, define (in hiera or you call to addtag) :
 #
 # omd::monitoring_network: 10.0.0.0
-# omd::monitoring_netmask: 255.255.255.0
 #
 #
 #
 define omd::check_mk::addtag(
   $omd_sites=['all'], #this allows to export the resources for all omd sites, or selected ones.
-  $monitoring_network=hiera('omd::monitoring_network',undef),
-  $monitoring_netmask=hiera('omd::monitoring_netmask',undef)
+  $monitoring_network=lookup('omd::monitoring_network', { default_value => undef }),
 ) {
   #define our hostnames and inventory exported resources for each OMD site
   #It is the up to the collecting servers to not duplicate resources by collecting both their dedicated resources and the global ones (the "all" tag)
 
-  $tagname=regsubst($name,'[^a-zA-Z0-9._]','_','G')
+  $tagname=regsubst($name,'[^a-zA-Z0-9._-]','_','G')
 
   #add the tag to the catalog :
   omd::check_mk::tag {$tagname:}
@@ -44,7 +41,7 @@ define omd::check_mk::addtag(
   #to allow duplicate resources, add a suffix with a "split char" _XxX_ and ${name} to each omd_sites, i.e add the tag name
 
   $tag_sites=regsubst($omd_sites,'$',"_XxX_${tagname}")
-  omd::check_mk::build_exported_resources {$tag_sites : allow_duplicates => '_XxX_', monitoring_network=>$monitoring_network , monitoring_netmask => $monitoring_netmask}
+  omd::check_mk::build_exported_resources {$tag_sites : allow_duplicates => '_XxX_', monitoring_network=>$monitoring_network }
 
   #to prevent dependency cycles, we use the "dummy" sub-define "tag" for ordering. We must tag everything before declaring the exported resources
   Omd::Check_mk::Tag["$tagname"] -> Omd::Check_mk::Build_exported_resources <| |>

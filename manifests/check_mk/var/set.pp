@@ -28,6 +28,7 @@ define omd::check_mk::var::set(
   $cfgfile=undef,
   $component='check_mk', #this allows to define config files for other components. Currently, only multisite|check_mk is allowed
 ) {
+  include ::omd::common::anchors
   
   $config=$cfgfile ? {
     undef => 'global',
@@ -67,6 +68,6 @@ define omd::check_mk::var::set(
       notify => Exec["checkmk_refresh_${site}"]
   }
   ->
-  Exec <| tag == "checkmk_inventory" |>
+  Anchor['checkmk_inventory']
   
 }

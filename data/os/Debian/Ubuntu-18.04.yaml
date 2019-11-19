@@ -1,0 +1,4 @@
+---
+#https://checkmk.com/support/1.6.0p6/check-mk-raw-1.6.0p6_0.bionic_amd64.deb
+omd::release: 0.bionic
+omd::checksum: a309ef4e5bf70b467f39589624a90cc39d1f66b83e57d5816bd0060c788c4ca3

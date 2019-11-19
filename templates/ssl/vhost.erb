@@ -12,7 +12,7 @@ Listen <%= @port %>
   SSLCACertificatePath <%= @ca_dir %>
   SSLVerifyDepth 10
   SSLVerifyClient <%= if(@ssl_force_client_cert) then 'require' else 'optional' end %>
-  SSLOptions           +StdEnvVars +FakeBasicAuth
+  SSLOptions      +StdEnvVars +StrictRequire
 
   #required by omd-1.30
   RequestHeader set X-Forwarded-Proto "https"
@@ -32,12 +32,16 @@ Listen <%= @port %>
 
 <% @sites.each do |site| -%>
 <Location /<%= site %>>
+  #SSLOptions      +FakeBasicAuth
+  #AuthName             "check_mk : YOUR CERT IS UNKNOWN. Check with <%= @admin_mail %>"
+  #AuthType             Basic
+  #require              valid-user
+  #AuthUserFile         /omd/sites/<%= site %>/etc/htpasswd
+  #omd will handle authorization through its users management.
+  AuthBasicFake "%{SSL_CLIENT_S_DN}"
   ErrorDocument 503 "<meta http-equiv='refresh' content='60'><h1>OMD: Site Not Started</h1>You need to start this site in order to access the web interface.<!-- IE shows its own short useless error message otherwise: placeholder -->"
   SSLRequireSSL
-  AuthName             "check_mk : YOUR CERT IS UNKNOWN. Check with <%= @admin_mail %>"
-  AuthType             Basic
-  require              valid-user
-  AuthUserFile         /omd/sites/<%= site %>/etc/htpasswd
+  
 </Location>
 <% end -%>
 

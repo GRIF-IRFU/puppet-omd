@@ -29,6 +29,7 @@ define omd::check_mk::var::append(
   $cfgfile=undef,
   $component='check_mk', #this allows to define config files for other components. Currently, only multisite|check_mk is allowed
 ) {
+  include ::omd::common::anchors
 
   $config=$cfgfile ? {
     undef => 'global',
@@ -62,7 +63,7 @@ define omd::check_mk::var::append(
   }
 
   validate_re($increment, '^[0-9]+$')
-  $real_concat_order=$concat_order + $increment
+  $real_concat_order=$concat_order + Integer($increment)
 
   #find if there is a subvar :
   # did not find how to split a string and force at most N elements to be returned, so : replace a # with something improbable to be user-defined, then split on that
@@ -89,6 +90,6 @@ define omd::check_mk::var::append(
       notify => Exec["checkmk_refresh_${site}"]
   }
   ->
-  Exec <| tag == "checkmk_inventory" |>
+  Anchor['checkmk_inventory']
 
 }

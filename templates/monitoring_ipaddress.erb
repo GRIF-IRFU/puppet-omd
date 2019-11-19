@@ -9,22 +9,16 @@ In case there are multiplie interfaces using the same network (why ?), we make s
 
 Update : make sure we handle the puppet stringify_facts=false for puppet4+ even if legacy variables are still there for now.
 -%>
-<% if @networking -%>
-  <%- @networking["interfaces"].each do |netif,netcfg| -%>
-  <%- if netcfg["ip"] == @monitoring_network -%>
-  <%- iface_ip = netcfg["ip"] -%>
+<%- iface_ip = '' -%>
+<% if @networking && @ip_bindings -%>
+  <%- @networking["interfaces"].each do |netif, netcfg| -%>
+    <%- if netcfg[@ip_bindings] -%>
+    <%- netcfg[@ip_bindings].each do |binding_ip_conf| -%>
+        <%- if binding_ip_conf["network"] == @monitoring_network -%>
+          <%- iface_ip = binding_ip_conf["address"] -%>
+        <%- end-%>
+      <%- end-%>
+    <%- end-%>
   <%- end-%>
-<%end-%>
-<% else -%>
-  <%- if @monitoring_network -%>
-    <%- iface_ip='' -%>
-    <%- @interfaces.split(',').each do |iface| -%>
-      <%- iface_net = 'network_' + iface -%>
-      <%- iface_ipvar = 'ipaddress_' + iface -%>
-      <%- if scope[ iface_net ] == @monitoring_network -%>
-        <%- iface_ip = scope[iface_ipvar] -%>
-      <%- end -%>
-    <%- end -%>
-  <%- end -%>
 <% end -%>
 <%= iface_ip -%>

@@ -5,11 +5,16 @@ An open monitoring distribution (OMD) puppet configuration module
 
 This module is intended to configure, install and manage an OMD distribution.
 
-If required, this will use  the omd repository. 
-This is the the default behaviour, so if you're managing your repos, make sure to disable this.
-Last note concerning directories and packages : Othe omd packages do contain the OMD version in the package name : this makes it difficult to have a module that works out of the box and does not hardcode a specific version. We'll try to maintain this hardcoded version, but in case you need something else, please just use the omd_version class param in the omd class. Or give us a recipe to improve that ;)
+A note on the installation: the default is now to directly download a Check-mk Raw Edition from checkmk.com (the consol.labs editions seem to have dropped check_mk support).
+Consol.labs repos configs is left in the modules if you want to use them. 
+ 
 
 This module borrows files from check_mk for the agent setup : those file license is under manifests/check_mk/agent
+.
+
+Last note about OMD upgrades :
+- if not using the repositories, a file is downloaded in the puppet cache dir for package install. Remember to cleanup old files, (but keep the current one)
+- after omd updates, an "omd site upgrade" is necessary : this is not managed by this module
 
 ## How to use the server side
 ------------------------------
@@ -18,9 +23,9 @@ This module borrows files from check_mk for the agent setup : those file license
 
     include omd
 
-#### If you don't want the offical repositories to be setup (your have your own) :
+#### If you have your own repositories :
 
-    class {omd: with_repo => false}
+    class {omd: with_repos => true}
 
 #### create an OMD site which will be available on http://<your hostname>/<sitename>:
 
@@ -28,7 +33,7 @@ This module borrows files from check_mk for the agent setup : those file license
     
 #### create another OMD site on the same machine
 
-    omd::site {'irfu': }
+    omd::site {'irfu': manage_crontabs=> true}
 
 
 This will install the 'test' site and change the default http (htaccess) password for the user 
@@ -123,20 +128,18 @@ Add host static aliases
     omd::check_mk::var::set {'extra_host_conf#alias': site=>'test', content=>'[]' }
     omd::check_mk::var::append {'extra_host_conf#alias|1': site=>'test', content=>'[("myalias" , ["my real hostname"])]' }    
     
-create a nagios service adding it to host tags
+create a legacy nagios/check_mk service adding it to host tags
 
-    omd::check_mk::legacy::service {'ldap': site=>     'irfu', command =>'check_tcp!2170', mk_tags=>['ce','cream','dpm_head','bdii'], perfdata=>true}
+    before cmk 1.6 :
+    omd::check_mk::legacy::service {'ldap': site=> 'irfu', command =>'check_tcp!2170', mk_tags=>['ce','cream','dpm_head','bdii'], perfdata=>true}
+    
+    Now with cmk 1.6 : 
+    omd::check_mk::legacy::service {'ldap': site=> 'irfu', command =>'check_tcp -H $HOSTADDRESS$ -p 2170', mk_tags=>['bdii']}
 
 create a nagios service adding it to a specific host
 
-    omd::check_mk::legacy::service {'backbone': site=> 'irfu', command =>'check_snmp!-P 2c -C public -o ifHCInOctets.3003,ifHCOutOctets.3003 -u InBytes,OutBytes -l bandwidth', mk_hosts=>['10.2.5.8'],}
+    omd::check_mk::legacy::service {'backbone': site=> 'irfu', command =>'check_snmp -P 2c -C public -o ifHCInOctets.3003,ifHCOutOctets.3003 -u InBytes,OutBytes -l bandwidth', mk_hosts=>['10.2.5.8'],}
       
-  
-create a nagios command, and use it
-
-    omd::nagios::command {check_nrpe_long: site=>'irfu', command => 'PATH="$PATH:/usr/lib64/nagios/plugins:/usr/lib/nagios/plugins" check_nrpe -u -H $HOSTADDRESS$ -c $ARG1$ -t $ARG2$'}
-    omd::check_mk::legacy::service {'dummy_cvmfs': site=> 'irfu', command =>'check_nrpe_long!check_hung_ncm!300', mk_tags=>['wn']}
-
 #### monitoring puppet (server side)
     omd::check_mk::server::plugins::puppet { 'irfu': }
 
@@ -178,17 +181,25 @@ Add a check_mk tag "nagios" on a host. You can now specify the monitoring networ
     
 Add an MRPE test that will be automatically inventoried ( and exporting a check_mk tag) :
     
-    omd::check_mk::mrpe::check{'hung_nrpe': command=>'PATH="$PATH:/usr/lib64/nagios/plugins:/usr/lib/nagios/plugins" check_procs -w :5 -C nrpe'}
+    omd::check_mk::mrpe::check{'hung_nrpe': command=>'check_procs -w :5 -C nrpe'}
+
+Make sure your host which doesn't have DNS resolution but is reachable is monitored correctly :
+
+    # helps find out the host monitoring address using its network address
+    omd::monitoring_network: 1.2.3.0
+    omd::monitoring_netmask: 255.255.255.128
+    # use the omd discovered "override_ip"
+    omd::brokendns: true
 
 #### monitoring puppet (client side)
 
     include omd::check_mk::plugins::puppet
 
 ## Todo
+- use the check_mk web api to create hosts, which will allow for wato usage
+- setup github CI/CD for module validation
 - refactor/rework
-- lower puppet inter-dependencies on client hosts
-- well, check the doc is correct :)
-- add support for notification definition/setup
+- make all classes and files "puppet5 native", with params types, and remove legacy still working things.
 - see if we can remove the binary "waitmax" from the module
 
 ## notes
@@ -197,26 +208,14 @@ This implements exported resources and collectors for check_mk tags as explained
 http://blog.matsharpe.com/2013/01/puppet-checkmk.html
 
 If you limit cron usage, please make sure to allow the OMD users, for instance, add :
+    
     cron::allow {irfu: } -> omd::site {'irfu': }
     
-Tested on : Scientific Linux 6.5
+    And probably also , since puppet now defaults to purging cron entries (unless_* params do not seem to work at all) :
+    
+    resources{'cron':
+      purge => false,
+    }
+    
+Working on : CentOS 7
 
-## Changes
-
-2015-05-07 : 
-
-added the monitoring network/netmasks for omd::check_mk::addtag, so that this can be used on multi-homed hosts.
-Without this, there was a chance the hosts would export a definition using the wrong ipaddress.
-
-2015-02-18 : 
-
-the omd::check_mk::addhost resource did not allow for purging manually added hosts. Those definitions have 
-been moved into the puppet/ subdirectory.
-
-This *WILL* require that you manually cleanup your check_mk host definitions in etc/check_mk/conf.d as it will 
-create duplicate host resources. But now the puppet directory beeing managed, hosts removed from the puppet config will really be automagically 
-removed from check_mk.
-
-The puppet subdirectory was owned by root : owner is now the omd user.
-
-Use text version of the "mode" param in puppet file resources (puppet warning).

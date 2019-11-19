@@ -10,12 +10,13 @@ define omd::check_mk::addhost(
   $hostname=$name, #the hostname if different from resource name
   $tags='userdefined',  #eventual tags to put on host. This is a string, not an array.
 ) {
+  include ::omd::common::anchors
   
   #strip anything after the comment char "%".
   $hname=regsubst($hostname,'%.*','')
   
   #make sure common folder exists
-  include omd::common::folders
+  include ::omd::common::folders
   File <| title == '/etc/check_mk/conf.d/omd-all' |>
   
   #define where to put host definition
@@ -42,6 +43,8 @@ define omd::check_mk::addhost(
   
   #create the exec for the inventory
   if("${name}" == "all") {
+      Anchor['checkmk_inventory']
+      ->
       exec { "checkmk_inventory_${hname}_${site}":
         command     => "bash -c 'cd /opt/omd/sites ; for i in * ; do sudo -i -u \${i} bin/cmk -I $hname ; done'",
         path => ['/usr/bin','/usr/sbin','/bin','/sbin',],
@@ -52,6 +55,8 @@ define omd::check_mk::addhost(
         #onlyif      => "test -f $mk_confdir/$mkhostname.mk",
       }  
     } else {
+      Anchor['checkmk_inventory']
+      ->
       exec { "checkmk_inventory_${hname}_${site}":
         command     => "su -l -c '/opt/omd/sites/${site}/bin/cmk -I $hname' -s /bin/sh ${site}",
         path => ['/usr/bin','/usr/sbin','/bin','/sbin',],

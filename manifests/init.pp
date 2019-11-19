@@ -8,51 +8,92 @@
  *  - latest can still be used for the release, but not for the package name
  */
 class omd(
-  $with_repo=true,
-  $omd_version='1.30', #or omd-1.11.20140328
-  $omd_release=latest,
-  $libdbi_release=latest,
-  $basedir = undef, #defines another place where to put omd : a symlink in /opt/omd will point to this place in order to achieve omd relocation
+  #package related params :
+  Boolean         $with_repo=false,
+  String          $pkg_basename ,  # this is the base name of the omd package. can be omd, omd-labs, check-mk-raw ... unfortunately, the omd repos are out of date :'(
+  Stdlib::HTTPUrl $download_baseurl,
+  Variant[String, Integer] $release,
+  String          $version,
+  String          $checksum=undef,
+  String          $checksum_type,
+
+  Optional[Stdlib::Unixpath] $pkg_creates = undef, #defines what directory is created by the package once installed. Used for "yum localinstall" (or apt) execs to prevent reinstallion failures
+  Optional[Stdlib::Unixpath] $basedir = undef, #defines another place where to put omd : a symlink in /opt/omd will point to this place in order to achieve omd relocation
+  Boolean         $disablestartup = false,
+
+  #internally used for building pkg name/url
+  String          $pkg_extension,
+  Stdlib::Unixpath $puppet_pkg_cachedir = '/opt/puppetlabs/puppet/cache/client_data'
 ) {
 
-
+  #how installation is managed :
+  # - either you have your own repo : this is perfect, and much easier : the package type is used for install
+  # - or : download the requested omd version, then use the package manager for a "localinstall"
+  # $pkg_name represents either the yum/apt whatever package to install, or the physical file that's downloaded
+  #
+  # there are issues with at least with the yum puppet provider, which tries to reinstall a local file over and over, and fails with a "nothing to do" error, so an exec is necessary to complete the install.
+  #
+  # Consol.labs repo are still available, but not setup now.
   if($with_repo) {
+
+    $pkg_source = undef
+    $pkg_name = "$pkg_basename-$version-$release"
+
+    anchor {'before_omd_install':}
+    ->
+    package {"omd":
+      name => $pkg_name ,
+      ensure => 'present',
+    }
+    ->
+    anchor{'after_omd_install':}
+
+  } else {
+
     case $::osfamily {
-      'Debian': { include omd::repos::debian }
-      'RedHat': { include omd::repos::redhat }
+      'Debian' : {
+        # https://checkmk.com/support/1.6.0p6/check-mk-raw-1.6.0p6_0.buster_amd64.deb
+        $pkg_name="$pkg_basename-${version}_${release}_${facts[os][architecture]}"
+        $install_cmd = "/usr/bin/apt-get -q -y install"
+      }
+
+      'RedHat' : {
+        #redhat and others : https://checkmk.com/support/1.6.0p6/check-mk-raw-1.6.0p6-el8-38.x86_64.rpm
+        $pkg_name="$pkg_basename-$version-$release.${facts[os][architecture]}"
+        $install_cmd = "/usr/bin/yum -d 0 -e 0 -y install"
+      }
+
       default : { fail("unsupported os family : $::osfamily")}
     }
+
+    $pkg_source    = "$download_baseurl/$version/$pkg_name"
+    $pkg_filepath  = "$puppet_pkg_cachedir/$pkg_name.$pkg_extension"
+
+    #download the package, then install :
+    archive { "$pkg_filepath" :
+      source => $pkg_source,
+      checksum => $checksum,
+      checksum_type => $checksum_type,
+      checksum_verify => $checksum ? { undef => false, default => true },
+    }
+    ->
+    anchor {'before_omd_install':}
+    ->
+    exec { "omd install" :
+      command => "$install_cmd $pkg_filepath",
+      creates => $pkg_creates,
+    }
+    ->
+    anchor{'after_omd_install':}
   }
 
   case $::osfamily {
     'Debian': {
       $omd_service = "omd-${omd_version}"
-      $dbi_pkg = 'libdbi1'
-      $svc_provider=undef
     }
     'RedHat': {
       $omd_service = 'omd'
-      $dbi_pkg = 'libdbi'
-      $svc_provider='redhat'
-      if( 0+$::operatingsystemmajrelease >= 6 ) {
-        require epel
-      }
-      # This is a bugfix for wrong python libraries in Centos 7.2 with omd 1.30
-      # The hashlib symlinks are being created as Workaround to a bug in omd Version 1.30.
-      # this bug disappeared with unstable version 1.31, and the workaround will be removed hopefully with omd 1.40
-      # contribution from https://github.com/Melkor333
-      if( $omd_version=='1.30' and $::lsbdistdescription =~ /^CentOS Linux release 7.2/ ) {
-        file { '/opt/omd/versions/1.30/lib/python/hashlib.py':
-          ensure  => link,
-          target  => "/usr/lib64/python2.7/hashlib.py",
-          require => Package['omd'],
-        }
-        file { '/opt/omd/versions/1.30/lib/python/hashlib.pyc':
-          ensure  => link,
-          target  => "/usr/lib64/python2.7/hashlib.pyc",
-          require => Package['omd'],
-        }
-      }
+      require epel
     }
     default : { fail("unsupported os family : $::osfamily")}
   }
@@ -73,14 +114,14 @@ class omd(
     file { '/opt/omd' :
       ensure => symlink,
       target => "${basedir}/omd",
-      before => Package['omd']
+      before => Anchor['before_omd_install']
     }
+
   }
 
-  package { 'libdbi': name => $dbi_pkg , ensure => $libdbi_release } #libdbi seems to be an un-specified omd package (RPM) dependency
+  #the package resource will either use a package "real name" or a local downloaded file if not using the repos
+  Anchor['after_omd_install']
   ->
-  package {"omd": name => "omd-$omd_version", ensure => $omd_release}
-  ->
-  service {'omd': name => "$omd_service", enable => true, provider => $svc_provider , ensure => running }
+  service {'omd': name => "$omd_service", enable => $disablestartup ? { true => false, default => true }, ensure => $disablestartup ? { true => 'stopped', default => 'running' } }
 
 }

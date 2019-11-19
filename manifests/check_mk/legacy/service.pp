@@ -20,7 +20,7 @@
  ) {
    
   #make sure the legacy_checks variable exists before we can add something
-  ensure_resource('omd::check_mk::var::set' , 'legacy_checks', { site=>"${site}", content=>'[]', cfgfile=>'services'} )
+  ensure_resource('omd::check_mk::var::set' , 'custom_checks', { site=>"${site}", content=>'[]', cfgfile=>'services'} )
   
   #tags checks. If present, provide the config with an escaped python list and a ',' so that we can add the hosts
   $tags = $mk_tags ? {
@@ -35,12 +35,19 @@
   }
    
   #perfdata check
-  $perfstr=$perfdata ? {
-    false => 'False',
-    default => 'True',  
-  }
+  # $perfstr=$perfdata ? {
+  #   false => 'False',
+  #   default => 'True',
+  # }
+   $perfstr=$perfdata ? {
+       false => "'has_perfdata': False",
+       default => "'has_perfdata': True",
+     }
     
   #append to legacy_checks variable
-  omd::check_mk::var::append{"legacy_checks|$description": site=>$site, cfgfile=>'services', content=> "[(('${command}','${description}',${perfstr}), ${tags} ${hosts} )]"}
+
+  omd::check_mk::var::append{"custom_checks|$description": site=>$site, cfgfile=>'services',
+    content=> "[({'command_name': 'check-${name}', 'service_description': '${name}', 'command_line': '$command', $perfstr , }, ${tags} ${hosts} )]"
+  }
    
  }
